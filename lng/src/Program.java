@@ -12,10 +12,10 @@ public class Program {
     private StringTokenizer tokenizer;
 
     private String var = "^[a-zA-Z_]{1}[a-zA-Z_0-9]{0,}$";
-    private String op = "\\+ \\| \\- \\| \\* \\| \\/";
+    private String op = "[\\+ \\| \\- \\| \\* \\| \\/]";
     private String num = "[0|[1-9][0-9]*]";
-    private String assing_op = "=";
-    private String logical_op = "&& | \\|| | % | == | ~ | > | < | >= | <=";
+    private String assing_op = "[=]";
+    private String logical_op = "[&& | \\|| | % | == | ~ | > | < | >= | <=]";
     private String if_KW = "if";
     private String do_WK = "do";
     private String while_KW = "while";
@@ -59,9 +59,9 @@ public class Program {
         }
 
         //Tokenize();
+        //System.out.println(file);
 
-        System.out.println(file);
-        Pattern pattern = Pattern.compile(num);
+        Pattern pattern = Pattern.compile("[0|[1-9][0-9]*]");
         Matcher matcher = pattern.matcher("123123");
 
         System.out.println(file.substring(matcher.start(), matcher.end()));
