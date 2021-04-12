@@ -4,14 +4,22 @@ import java.util.regex.Pattern;
 public class Terminal {
 
     private String name;
-    private String pattern;
+    private Pattern pattern;
     private int priority;
 
+
+    public Terminal(String n, String pat){
+
+        name = n;
+        pattern = Pattern.compile(pat);
+        priority = 0;
+
+    }
 
     public Terminal(String n, String pat, int pr){
 
         name = n;
-        pattern = pat;
+        pattern = Pattern.compile(pat);
         priority = pr;
 
     }
@@ -20,12 +28,13 @@ public class Terminal {
         return name;
     }
 
-    public String getPattern(){
-        return pattern;
-    }
-
     public int getPriority(){
         return priority;
+    }
+
+
+    public boolean matches(CharSequence charSequence) {
+        return pattern.matcher(charSequence).matches();
     }
 
 }
