@@ -159,22 +159,58 @@ public class ShuntingYard {
 
     private void calculateExpression(String expression) {
 
+        String rpn = sortingStation(expression, MAIN_MATH_OPERATIONS);
+
+        StringTokenizer tokenizer = new StringTokenizer(rpn, " ");
+
+        Stack<String> stack = new Stack<String>();
+
+        while (tokenizer.hasMoreTokens()) {
+
+            String token = tokenizer.nextToken();
+            // Операнд.
+            if (!MAIN_MATH_OPERATIONS.keySet().contains(token)) {
+                stack.push(token);
+            } else {
+
+                String op2 = stack.pop();
+                String op1 = stack.empty() ? "0" : stack.pop();
+
+                if (token.equals("*")) {
+                    stack.push(multiply(op1,op2));
+                } else if (token.equals("/")) {
+                    stack.push(divide(op1,op2));
+                } else if (token.equals("+")) {
+                    stack.push(add(op1,op2));
+                } else if (token.equals("-")) {
+                    stack.push(sub(op1,op2));
+                }
+
+            }
+
+        }
+
+        if (stack.size() != 1)
+            throw new IllegalArgumentException("Expression syntax error.");
+
+        //return stack.pop();
+
     }
 
-    private void add(String op1, String op2, Stack stack){
-
+    private String add(String op1, String op2){
+        return null;
     }
 
-    private void sub(String op1, String op2, Stack stack){
-
+    private String sub(String op1, String op2){
+        return null;
     }
 
-    private void multiply(String op1, String op2, Stack stack){
-
+    private String multiply(String op1, String op2){
+        return null;
     }
 
-    private void divide(String op1, String op2, Stack stack){
-
+    private String divide(String op1, String op2){
+        return null;
     }
 
     private void mapVar(String var, int value){

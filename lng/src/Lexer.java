@@ -24,8 +24,8 @@ public class Lexer {
             new Terminal("IF_KW", "if", 1),
             new Terminal("ELSE_KW", "else", 1),
 
-            new Terminal("WHILE_KW", "while", 1),
-            new Terminal("DO_KW", "do", 1),
+            new Terminal("WHILE_KW", "while", 2),
+            new Terminal("DO_KW", "do", 2),
 
             new Terminal("L_BR", "\\("),
             new Terminal("R_BR", "\\)"),
