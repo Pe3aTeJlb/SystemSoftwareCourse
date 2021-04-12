@@ -1,16 +1,25 @@
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class TerminalNode extends Node{
 
-    ArrayList<Lexeme> children = new ArrayList<Lexeme>();
+    private ArrayList<Lexeme> children = new ArrayList<Lexeme>();
 
     public TerminalNode(String name) {
         super(name);
     }
 
-    public void addChild(Lexeme lexeme) {
+    public void addLexeme(Lexeme lexeme) {
         children.add(lexeme);
     }
 
-    public ArrayList<Lexeme> getChildren(){return children;}
+    public ArrayList<Lexeme> getLexemes(){return children;}
+
+    public ArrayList<Lexeme> getReverseLexemes(){
+
+        ArrayList<Lexeme> buff = new ArrayList<>(children);
+        Collections.reverse(buff);
+        return buff;
+    }
+
 }

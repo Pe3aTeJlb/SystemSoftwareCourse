@@ -4,8 +4,9 @@ import java.util.*;
 
 public class ShuntingYard {
 
-    private ArrayList<ArrayList<String>> list = new ArrayList<>();
-    private ArrayList<String> out = new ArrayList<>();
+    private Stack<String> stack = new Stack<>();
+
+    private HashMap<String, Integer> map = new HashMap<>();
 
     private static final Map<String, Integer> MAIN_MATH_OPERATIONS;
 
@@ -13,33 +14,61 @@ public class ShuntingYard {
 
         MAIN_MATH_OPERATIONS = new HashMap<String, Integer>();
 
-        MAIN_MATH_OPERATIONS.put("~", 1);
+        MAIN_MATH_OPERATIONS.put("=", 0);
+        MAIN_MATH_OPERATIONS.put("+", 1);
+        MAIN_MATH_OPERATIONS.put("-", 1);
         MAIN_MATH_OPERATIONS.put("*", 2);
-        MAIN_MATH_OPERATIONS.put("+", 3);
-        MAIN_MATH_OPERATIONS.put("@", 3);
+        MAIN_MATH_OPERATIONS.put("/", 2);
 
     }
 
-    public void constructExpression(Node root, String exp){
+    public void constructExpression(Node root){
 
-        String buff = exp;
+        //exp
+        for (Node n: root.getChild()) {
+            String buff = exploreTree(n);
+            System.out.println(buff);
+        }
 
-        if(root instanceof TerminalNode){
+    }
 
-            for (Lexeme l: ((TerminalNode)root).getChildren()) {
-                buff += l.getValue();
+    private String exploreTree(Node root){
+
+        String buff = "";
+
+        for (Lexeme l: root.getLexemes()) {
+           // System.out.println(l.getValue());
+            buff += l.getValue();
+        }
+
+
+        for(int i = 0; i < root.getChild().size(); i++){
+
+            if(i == 1){
+
+                buff = exploreTree(root.getReversedChild().get(i))+buff;
+            }
+            else {
+
+                buff += exploreTree(root.getReversedChild().get(i));
             }
 
         }
 
-        for (Node n: root.getChild()) {
-            constructExpression(n,buff);
-        }
+        //for (Node n: root.getChild()) {
+        //    buff += exploreTree(n);
+        //}
+
+        return buff;
 
     }
 
-    private String sortingStation(String expression, Map<String, Integer> operations, String leftBracket,
-                                        String rightBracket) {
+    private String sortingStation(String expression, Map<String, Integer> operations) {
+        return sortingStation(expression, operations, "(", ")");
+    }
+
+    private String sortingStation(String expression, Map<String, Integer> operations,
+                                  String leftBracket, String rightBracket) {
 
         if (expression == null || expression.length() == 0)
             throw new IllegalStateException("Expression isn't specified.");
@@ -54,7 +83,7 @@ public class ShuntingYard {
 
         expression = expression.replace(" ", "");
 
-        Set<String> operationSymbols = new HashSet<String>(operations.keySet());
+        Set<String> operationSymbols = new HashSet<>(operations.keySet());
         operationSymbols.add(leftBracket);
         operationSymbols.add(rightBracket);
 
@@ -127,13 +156,33 @@ public class ShuntingYard {
 
     }
 
-    private String sortingStation(String expression, Map<String, Integer> operations) {
-        return sortingStation(expression, operations, "(", ")");
-    }
 
     private void calculateExpression(String expression) {
 
+    }
 
+    private void add(String op1, String op2, Stack stack){
+
+    }
+
+    private void sub(String op1, String op2, Stack stack){
+
+    }
+
+    private void multiply(String op1, String op2, Stack stack){
+
+    }
+
+    private void divide(String op1, String op2, Stack stack){
+
+    }
+
+    private void mapVar(String var, int value){
+
+        if(map.containsKey(var)){
+            map.remove(var);
+        }
+        map.put(var,value);
 
     }
 

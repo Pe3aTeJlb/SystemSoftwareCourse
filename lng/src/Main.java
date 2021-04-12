@@ -20,7 +20,7 @@ public class Main {
 
         System.out.println("\n\n"+"Restore expression"+"\n");
 
-        shuntingYard.constructExpression(parser.getRoot(), "");
+        shuntingYard.constructExpression(parser.getRoot());
 
     }
 }

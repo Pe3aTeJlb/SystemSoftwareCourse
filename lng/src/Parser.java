@@ -20,7 +20,7 @@ public class Parser {
     private Node lang() throws Exception {
 
         Node node = new Node("lang");
-        //node.addChild(expr());
+        node.addChild(expr());
 
         while (lexemes.size() > 0 && currToken().matches("VAR|IF_KW")) {
             node.addChild(expr());
@@ -46,7 +46,7 @@ public class Parser {
 
     private Node assign_expr() throws Exception {
 
-        TerminalNode node = new TerminalNode("assign_expr");
+        Node node = new Node("assign_expr");
 
         match("VAR", node);
         match("ASSIGN_OP", node);
@@ -59,7 +59,7 @@ public class Parser {
 
     private Node value_expr() throws Exception {
 
-        TerminalNode node = new TerminalNode("value_expr");
+        Node node = new Node("value_expr");
 
         switch (currToken()) {
 
@@ -87,7 +87,7 @@ public class Parser {
 
     private Node value() throws Exception {
 
-        TerminalNode node = new TerminalNode("value");
+        Node node = new Node("value");
 
         switch (currToken()) {
             case ("NUMBER") -> match("NUMBER", node);
@@ -101,7 +101,7 @@ public class Parser {
 
     private Node if_expr() throws Exception {
 
-        TerminalNode node = new TerminalNode("if_expr");
+        Node node = new Node("if_expr");
 
         node.addChild(if_head());
         node.addChild(if_else_body());
@@ -116,7 +116,7 @@ public class Parser {
 
     private Node if_head() throws Exception {
 
-        TerminalNode node = new TerminalNode("if_head");
+        Node node = new Node("if_head");
 
         match("IF_KW", node);
         node.addChild(if_condition());
@@ -127,7 +127,7 @@ public class Parser {
 
     private Node else_expr() throws Exception {
 
-        TerminalNode node = new TerminalNode("else_expr");
+        Node node = new Node("else_expr");
         match("ELSE_KW", node);
         node.addChild(if_else_body());
 
@@ -137,7 +137,7 @@ public class Parser {
 
     private Node if_condition() throws Exception {
 
-        TerminalNode node = new TerminalNode("if_condition");
+        Node node = new Node("if_condition");
 
         match("L_BR", node);
         node.addChild(logical_expr());
@@ -149,7 +149,7 @@ public class Parser {
 
     private Node logical_expr() throws Exception {
 
-        TerminalNode node = new TerminalNode("logical_expr");
+        Node node = new Node("logical_expr");
 
         node.addChild(value_expr());
 
@@ -164,7 +164,7 @@ public class Parser {
 
     private Node if_else_body() throws Exception{
 
-        TerminalNode node = new TerminalNode("ifelse_body");
+        Node node = new Node("ifelse_body");
 
         match("L_S_BR", node);
 
@@ -179,16 +179,20 @@ public class Parser {
     }
 
     private String currToken() {
-        return lexemes.get(0).getTerminal().getName();
+
+        if (!lexemes.isEmpty()){
+            return lexemes.get(0).getTerminal().getName();
+        }else {return "";}
+
     }
 
-    private void match(String terminal, TerminalNode currNode) {
+    private void match(String terminal, Node currNode) {
 
         String t = currToken();
 
         assert (t.equals(terminal)) : "Current Token != " + terminal;
 
-        currNode.addChild(lexemes.get(0));
+        currNode.addLexeme(lexemes.get(0));
 
         lexemes.remove(0);
 
@@ -210,12 +214,9 @@ public class Parser {
 
         System.out.println(tab+root.getName());
 
-        if(root instanceof TerminalNode){
 
-            for (Lexeme l: ((TerminalNode)root).getChildren()) {
-                System.out.println(tab+l.getValue());
-            }
-
+        for (Lexeme l: root.getLexemes()) {
+            System.out.println(tab+l.getValue());
         }
 
         for (Node n: root.getChild()) {
