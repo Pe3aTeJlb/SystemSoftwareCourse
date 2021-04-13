@@ -22,7 +22,7 @@ public class Parser {
         Node node = new Node("lang");
         node.addChild(expr());
 
-        while (lexemes.size() > 0 && currToken().matches("VAR|IF_KW")) {
+        while (lexemes.size() > 0 && currToken().matches("VAR|IF_KW|WHILE_KW")) {
             node.addChild(expr());
         }
 
@@ -37,6 +37,7 @@ public class Parser {
         switch (currToken()) {
             case ("VAR") -> node.addChild(assign_expr());
             case ("IF_KW") -> node.addChild(if_expr());
+            case ("WHILE_KW") -> node.addChild(while_expr());
             default -> throw new Exception("Error in expr");
         }
 
@@ -74,6 +75,7 @@ public class Parser {
             default -> throw new Exception("Error in value_expr");
 
         }
+
         while (currToken().matches("OP")) {
 
             match("OP", node);
@@ -170,7 +172,57 @@ public class Parser {
 
         node.addChild(expr());
 
-        while (currToken().matches("VAR|IF_KW")) node.addChild(expr());
+        while (currToken().matches("VAR|IF_KW|WHILE_KW")) node.addChild(expr());
+
+        match("R_S_BR", node);
+
+        return node;
+
+    }
+
+    private Node while_expr() throws Exception{
+
+        Node node = new Node("while_expr");
+
+        node.addChild(while_head());
+        node.addChild(while_body());
+
+        return node;
+
+    }
+
+    private Node while_head() throws Exception{
+
+        Node node = new Node("while_head");
+
+        match("WHILE_KW", node);
+        node.addChild(while_condition());
+
+        return node;
+
+    }
+
+    private Node while_condition() throws Exception{
+
+        Node node = new Node("while_condition");
+
+        match("L_BR", node);
+        node.addChild(logical_expr());
+        match("R_BR", node);
+
+        return node;
+
+    }
+
+    private Node while_body() throws Exception{
+
+        Node node = new Node("while_body");
+
+        match("L_S_BR", node);
+
+        node.addChild(expr());
+
+        while (currToken().matches("VAR|IF_KW|WHILE_KW")) node.addChild(expr());
 
         match("R_S_BR", node);
 

@@ -4,8 +4,6 @@ import java.util.*;
 
 public class ShuntingYard {
 
-    private Stack<String> stack = new Stack<>();
-
     private HashMap<String, String> map = new HashMap<>();
 
     private static final Map<String, Integer> MAIN_MATH_OPERATIONS;
@@ -79,6 +77,30 @@ public class ShuntingYard {
             }
 
         }else if(exp.getChild().get(0).getName().equals("while_expr")){
+
+            String buff = restoreCondition(getDefinedNode(exp.getChild().get(0), "logical_expr"));
+
+            System.out.println(buff);
+
+            boolean trueBranch = calculateCondition(buff);
+
+            if(trueBranch){
+
+                System.out.println("true branch");
+
+                for (Node n: exp.getChild().get(0).getChild().get(1).getChild()) {
+                    checkType(n);
+                }
+
+                checkType(exp);
+
+            }else {
+
+                System.out.println("false branch");
+
+                return;
+
+            }
 
         }
 
