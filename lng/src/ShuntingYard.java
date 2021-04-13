@@ -64,13 +64,17 @@ public class ShuntingYard {
 
                 System.out.println("true branch");
 
-                checkType(exp.getChild().get(0).getChild().get(1).getChild().get(0));
+                for (Node n: exp.getChild().get(0).getChild().get(1).getChild()) {
+                    checkType(n);
+                }
 
             }else {
 
                 System.out.println("false branch");
 
-                checkType(exp.getChild().get(0).getChild().get(2).getChild().get(0));
+                for (Node n: exp.getChild().get(0).getChild().get(2).getChild()) {
+                    checkType(n);
+                }
 
             }
 
