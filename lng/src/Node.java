@@ -9,13 +9,24 @@ public class Node {
 
     private ArrayList<Lexeme> lexemes = new ArrayList<Lexeme>();
 
+
     public Node(String name) {
         this.name = name;
     }
 
-    public void addChild(Node node) {
-        children.add(node);
+
+
+    public void setName(String name) {
+        this.name = name;
     }
+
+    public String getName() {
+        return name;
+    }
+
+
+
+    public void addChild(Node node) { children.add(node); }
 
     public ArrayList<Node> getChild() {
         return children;
@@ -27,13 +38,7 @@ public class Node {
         return buff;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
 
-    public String getName() {
-        return name;
-    }
 
     public void addLexeme(Lexeme lexeme) {
         lexemes.add(lexeme);

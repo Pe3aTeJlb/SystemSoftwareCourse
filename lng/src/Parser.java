@@ -12,7 +12,7 @@ public class Parser {
 
     public void createAST(ArrayList<Lexeme> lex) throws Exception {
 
-        lexemes = lex;
+        lexemes = new ArrayList<>(lex);
         root = lang();
 
     }
