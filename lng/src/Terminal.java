@@ -6,7 +6,7 @@ public class Terminal {
     private String name;
     private Pattern pattern;
     private int priority;
-
+// add ignorable
 
     public Terminal(String n, String pat){
 

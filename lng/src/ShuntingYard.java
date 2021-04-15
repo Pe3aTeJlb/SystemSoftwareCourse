@@ -12,6 +12,10 @@ public class ShuntingYard {
 
         MAIN_MATH_OPERATIONS = new HashMap<>();
 
+        MAIN_MATH_OPERATIONS.put("if", 5);
+        MAIN_MATH_OPERATIONS.put("else", 5);
+        MAIN_MATH_OPERATIONS.put("while", 5);
+
         MAIN_MATH_OPERATIONS.put("=", 3);
         MAIN_MATH_OPERATIONS.put("<", 3);
         MAIN_MATH_OPERATIONS.put(">", 3);
@@ -25,6 +29,7 @@ public class ShuntingYard {
 
     }
 
+
     public void constructExpression(Node root){
 
         //upper expression layer
@@ -34,6 +39,17 @@ public class ShuntingYard {
 
     }
 
+    public void constructRPN(Node root){
+
+        String ass = "";
+
+        //upper expression layer
+        for (Node n: root.getChild()) {
+            ass += checkTypeButDontCalculate(n) + "    ";
+        }
+        System.out.println(ass);
+
+    }
 
     private void checkType(Node exp){
 
@@ -69,9 +85,10 @@ public class ShuntingYard {
             }else {
 
                 System.out.println("false branch");
-
-                for (Node n: exp.getChild().get(0).getChild().get(2).getChild()) {
-                    checkType(n);
+                if(exp.getChild().get(0).getChild().size() > 2){
+                    for (Node n : exp.getChild().get(0).getChild().get(2).getChild()) {
+                        checkType(n);
+                    }
                 }
 
             }
@@ -103,6 +120,63 @@ public class ShuntingYard {
             }
 
         }
+
+    }
+
+    private String checkTypeButDontCalculate(Node exp){
+
+        String globalBuffer = "";
+
+        if(exp.getChild().get(0).getName().equals("assign_expr")){
+
+            String buff = "";
+
+            for (Lexeme l: exp.getChild().get(0).getLexemes()) {
+                buff += l.getValue();
+            }
+
+            buff += restoreAssign(getDefinedNode(exp.getChild().get(0), "value_expr"));
+            System.out.println(buff);
+
+            return justReturnExpression(buff);
+
+        }else if(exp.getChild().get(0).getName().equals("if_expr")){
+
+            String buff = restoreCondition(getDefinedNode(exp.getChild().get(0), "logical_expr"));
+
+            System.out.println(buff);
+
+            globalBuffer += justReturnExpression(buff);
+
+
+            for (Node n: exp.getChild().get(0).getChild().get(1).getChild()) {
+                globalBuffer += "    " + checkTypeButDontCalculate(n);
+            }
+
+            System.out.println("false branch");
+            if(exp.getChild().get(0).getChild().size() > 2){
+                for (Node n : exp.getChild().get(0).getChild().get(2).getChild().get(0).getChild()) {
+                    globalBuffer += "    " + checkTypeButDontCalculate(n);
+                }
+            }
+
+
+
+        }else if(exp.getChild().get(0).getName().equals("while_expr")){
+
+            String buff = restoreCondition(getDefinedNode(exp.getChild().get(0), "logical_expr"));
+
+            System.out.println(buff);
+
+            globalBuffer += justReturnExpression(buff);
+
+            for (Node n: exp.getChild().get(0).getChild().get(1).getChild()) {
+                globalBuffer += "    "+checkTypeButDontCalculate(n);
+            }
+
+        }
+
+        return globalBuffer;
 
     }
 
@@ -192,7 +266,7 @@ public class ShuntingYard {
 
     }
 
-
+    //Variant old
 
     public void calculateExpression(String exp) {
 
@@ -275,6 +349,13 @@ public class ShuntingYard {
 
     }
 
+    public String justReturnExpression(String exp){
+
+        return sortingStation(exp, MAIN_MATH_OPERATIONS);
+
+    }
+
+
 
 
 
@@ -297,9 +378,13 @@ public class ShuntingYard {
 
         expression = expression.replace(" ", "");
 
+        expression.replace("{","(");
+        expression.replace("}",")");
+
         Set<String> operationSymbols = new HashSet<>(operations.keySet());
         operationSymbols.add(leftBracket);
         operationSymbols.add(rightBracket);
+
 
         int index = 0;
         boolean findNext = true;
@@ -337,11 +422,15 @@ public class ShuntingYard {
                 else if (nextOperation.equals(rightBracket)) {
 
                     while (!stack.peek().equals(leftBracket)) {
+
                         out.add(stack.pop());
+
                         if (stack.empty()) {
                             throw new IllegalArgumentException("Unmatched brackets");
                         }
+
                     }
+
                     stack.pop();
 
                 }
@@ -349,12 +438,15 @@ public class ShuntingYard {
 
                     while (!stack.empty() && !stack.peek().equals(leftBracket) &&
                             (operations.get(nextOperation) >= operations.get(stack.peek()))) {
+
                         out.add(stack.pop());
+
                     }
 
                     stack.push(nextOperation);
 
                 }
+
 
                 index = nextOperationIndex + nextOperation.length();
 
@@ -379,111 +471,62 @@ public class ShuntingYard {
 
     }
 
-    private String sortingStation(ArrayList<Lexeme> lexemes, int treeLeaves, Map<String, Integer> operations) {
+    public void calculateExpression(ArrayList<Lexeme> lexemes){
 
-        if (lexemes.size() == 0)
-            throw new IllegalStateException("Expression isn't specified.");
-        if (operations == null || operations.isEmpty())
-            throw new IllegalStateException("Operations aren't specified.");
+        StringBuilder exp = new StringBuilder();
 
-        String expression = "";
-
-        for(int i = 0; i < treeLeaves; i++){
-            expression += lexemes.get(i).getValue() + " ";
-        }
-        System.out.println("Original expression: "+expression);
-
-        for(int i = 0; i < treeLeaves; i++){
-           lexemes.remove(0);
+        for (Lexeme l: lexemes) {
+            exp.append(l.getValue()).append(" ");
         }
 
+        System.out.println(exp);
 
-        String leftBracket = "(";
-        String rightBracket = ")";
 
-        List<String> out = new ArrayList<>();
+        String rpn = sortingStation(exp.toString(), MAIN_MATH_OPERATIONS);
+
+        //String rpn = sortingStation(lexemes, MAIN_MATH_OPERATIONS);
+
+        System.out.println("RPN: "+rpn);
+
+
+        StringTokenizer tokenizer = new StringTokenizer(rpn, " ");
 
         Stack<String> stack = new Stack<>();
 
-        Set<String> operationSymbols = new HashSet<>(operations.keySet());
-        operationSymbols.add(leftBracket);
-        operationSymbols.add(rightBracket);
+        while (tokenizer.hasMoreTokens()) {
 
-        int index = 0;
-        boolean findNext = true;
+            String token = tokenizer.nextToken();
+            stack.push(token);
 
-        while (findNext) {
-
-            int nextOperationIndex = expression.length();
-            String nextOperation = "";
-
-            for (String operation : operationSymbols) {
-
-                int i = expression.indexOf(operation, index);
-
-                if (i >= 0 && i < nextOperationIndex) {
-                    nextOperation = operation;
-                    nextOperationIndex = i;
-                }
-
-            }
-
-            if (nextOperationIndex == expression.length()) {
-
-                findNext = false;
-
+            // Операнд.
+            if (!MAIN_MATH_OPERATIONS.keySet().contains(token)) {
+                stack.push(token);
             } else {
 
-                // Если оператору или скобке предшествует операнд, добавляем его в выходную строку.
-                if (index != nextOperationIndex) {
-                    out.add(expression.substring(index, nextOperationIndex));
-                }
+                String op2 = stack.pop();
+                String op1 = stack.empty() ? "0" : stack.pop();
 
-                if (nextOperation.equals(leftBracket)) {
-                    stack.push(nextOperation);
-                }
-                else if (nextOperation.equals(rightBracket)) {
-
-                    while (!stack.peek().equals(leftBracket)) {
-                        out.add(stack.pop());
-                        if (stack.empty()) {
-                            throw new IllegalArgumentException("Unmatched brackets");
-                        }
-                    }
-                    stack.pop();
-
-                }
-                else {
-
-                    while (!stack.empty() && !stack.peek().equals(leftBracket) &&
-                            (operations.get(nextOperation) >= operations.get(stack.peek()))) {
-                        out.add(stack.pop());
-                    }
-
-                    stack.push(nextOperation);
+                switch (token) {
+                    case "*": stack.push(multiply(op1,op2));
+                    case "/": stack.push(divide(op1,op2));
+                    case "+": stack.push(add(op1,op2));
+                    case "-": stack.push(sub(op1,op2));
+                    case "<": stack.push(Boolean.toString(Less(op1,op2)));
+                    case ">": stack.push(Boolean.toString(Greater(op1,op2)));
+                    case "==": stack.push(Boolean.toString(Equals(op1,op2)));
+                    case "!=": stack.push(Boolean.toString(NotEquals(op1,op2)));
 
                 }
 
-                index = nextOperationIndex + nextOperation.length();
+                System.out.println(stack.toString());
 
             }
+
         }
 
-        if (index != expression.length()) {
-            out.add(expression.substring(index));
-        }
+        System.out.println(map.toString());
+        System.out.println("\n");
 
-        while (!stack.empty()) {
-            out.add(stack.pop());
-        }
-
-        StringBuffer result = new StringBuffer();
-        if (!out.isEmpty())
-            result.append(out.remove(0));
-        while (!out.isEmpty())
-            result.append(" ").append(out.remove(0));
-
-        return result.toString();
 
     }
 

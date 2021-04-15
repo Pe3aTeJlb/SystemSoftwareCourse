@@ -3,23 +3,18 @@ import java.io.FileReader;
 import java.io.IOException;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class Lexer {
 
-    private  ArrayList<Terminal> TERMINALS = new ArrayList<Terminal>(
-            Arrays.asList(
+    private  List<Terminal> TERMINALS = List.of(
 
-            //new Terminal("VAR", "^[a-zA-Z_]{1}[a-zA-Z_0-9]{0,}$"),
             new Terminal("VAR", "^[a-zA-Z_]{1}\\w*$"),
             new Terminal("NUMBER", "0|[1-9][0-9]*"),
 
             new Terminal("ASSIGN_OP", "="),
             new Terminal("LOGICAL_OP", "==|!=|>|<"),
             new Terminal("OP", "[+-/*]"),
-
-            //new Terminal("FOR_KW", "for", 1),
 
             new Terminal("IF_KW", "if", 1),
             new Terminal("ELSE_KW", "else", 1),
@@ -33,19 +28,16 @@ public class Lexer {
             new Terminal("L_S_BR", "\\{"),
             new Terminal("R_S_BR", "\\}"),
 
-            //new Terminal("SC",";"),
-            //new Terminal("VAR_TYPE", "int|str|float", 1),
-
             new Terminal("WS", "\\s+")
 
-            )
     );
 
-    private ArrayList<Lexeme> lexemes = new ArrayList<>();
+    private ArrayList<Lexeme> lexemes;
 
     public void readFile(String filePath) {
 
         StringBuilder fileData = new StringBuilder();
+
         lexemes = new ArrayList<>();
 
         try {
@@ -67,7 +59,10 @@ public class Lexer {
 
                 Lexeme lexeme = extractNextLexeme(fileData);
 
-                if (!lexeme.getTerminal().getName().equals("WS")){ lexemes.add(lexeme);}
+                if (!lexeme.getTerminal().getName().equals("WS")){
+                    lexemes.add(lexeme);
+                }
+
                 fileData.delete(0, lexeme.getValue().length());
 
             }
