@@ -22,7 +22,7 @@ public class Parser {
         Node node = new Node("lang");
         node.addChild(expr());
 
-        while (lexemes.size() > 0 && currToken().matches("VAR|IF_KW|WHILE_KW")) {
+        while (lexemes.size() > 0 && currToken().matches("VAR|IF_KW|WHILE_KW|DLL_FUNC_KW|HASHMAP_FUNC_KW|COMMON_FUNC_KW")) {
             node.addChild(expr());
         }
 
@@ -37,6 +37,7 @@ public class Parser {
         switch (currToken()) {
             case ("VAR") -> node.addChild(assign_expr());
             case ("IF_KW") -> node.addChild(if_expr());
+            case ("DLL_FUNC_KW"), ("HASHMAP_FUNC_KW"), ("COMMON_FUNC_KW") -> node.addChild(function_call());
             case ("WHILE_KW") -> node.addChild(while_expr());
             default -> throw new Exception("Error in expr");
         }
@@ -66,6 +67,8 @@ public class Parser {
 
             case ("NUMBER"), ("VAR") -> node.addChild(value());
 
+            case ("NEW_KW") -> node.addChild(assign_struct());
+
             case ("L_BR") -> {
                 match("L_BR", node);
                 node.addChild(value_expr());
@@ -94,6 +97,32 @@ public class Parser {
         switch (currToken()) {
             case ("NUMBER") -> match("NUMBER", node);
             case ("VAR") -> match("VAR", node);
+            default -> throw new Exception("Error in value");
+        }
+
+        return node;
+
+    }
+
+    private Node assign_struct() throws Exception{
+
+        Node node = new Node("assign_struct");
+
+        match("NEW_KW", node);
+
+        node.addChild(data_struct());
+
+        return node;
+
+    }
+
+    private Node data_struct() throws Exception{
+
+        Node node = new Node("data_struct");
+
+        switch (currToken()) {
+            case ("DLL_KW") -> match("DLL_KW", node);
+            case ("HASHMAP_KW") -> match("HASHMAP_KW", node);
             default -> throw new Exception("Error in value");
         }
 
@@ -230,11 +259,54 @@ public class Parser {
 
     }
 
+    private Node function_call() throws Exception{
+
+        Node node = new Node("function_call");
+
+        switch (currToken()) {
+            case ("DLL_FUNC_KW") -> match("DLL_FUNC_KW", node);
+            case ("HASHMAP_FUNC_KW") -> match("HASHMAP_FUNC_KW", node);
+            case ("COMMON_FUNC_KW") -> match("COMMON_FUNC_KW", node);
+            default -> throw new Exception("Error in value");
+        }
+
+        node.addChild(arguments());
+
+        return node;
+    }
+
+    private Node arguments() throws Exception{
+
+        Node node = new Node("arguments");
+
+        match("L_BR", node);
+
+        while (!currToken().matches("R_BR")) {
+            node.addChild(value());
+            if(currToken().equals("CM"))dropComma();
+        }
+
+        match("R_BR", node);
+
+        return node;
+
+    }
+
+
+
+    //Tools
+
     private String currToken() {
 
         if (!lexemes.isEmpty()){
             return lexemes.get(0).getTerminal().getName();
         }else {return "";}
+
+    }
+
+    private void dropComma(){
+
+        lexemes.remove(0);
 
     }
 

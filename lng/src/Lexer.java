@@ -22,13 +22,26 @@ public class Lexer {
             new Terminal("WHILE_KW", "while", 1),
             new Terminal("DO_KW", "do", 1),
 
+            new Terminal("NEW_KW", "(new)",1),
+
+            new Terminal("DLL_KW", "DoubleLinkedList",1),
+            new Terminal("DLL_FUNC_KW", "(addFront)|(addEnd)|(addBefore)|(addAfter)" +
+                    "|(forward)|(backward)|(toFront)|(toEnd)",1),
+
+            new Terminal("HASHMAP_KW", "HashMap",1),
+            new Terminal("HASHMAP_FUNC_KW", "(put)|(containsKey)",1),
+
+            new Terminal("COMMON_FUNC_KW", "(get)|(remove)|(size)|(clear)|(isEmpty)|(print)",1),
+
             new Terminal("L_BR", "\\("),
             new Terminal("R_BR", "\\)"),
 
             new Terminal("L_S_BR", "\\{"),
             new Terminal("R_S_BR", "\\}"),
 
+            new Terminal("CM", ";"),
             new Terminal("WS", "\\s+")
+
 
     );
 

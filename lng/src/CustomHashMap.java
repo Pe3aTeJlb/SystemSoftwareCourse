@@ -1,6 +1,6 @@
 import java.util.*;
 
-public class CustomHashMap<K, V> {
+public class CustomHashMap<K, V> extends Object{
 
     private int size;
     private int DEFAULT_CAPACITY = 16;
@@ -108,6 +108,7 @@ public class CustomHashMap<K, V> {
 
     }
 
+    @Override
     public String toString(){
 
         StringBuilder sb = new StringBuilder();

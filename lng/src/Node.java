@@ -3,20 +3,14 @@ import java.util.Collections;
 
 public class Node {
 
-    private String name = null;
+    private String name;
 
     private ArrayList<Node> children = new ArrayList<>();
 
-    private ArrayList<Lexeme> lexemes = new ArrayList<Lexeme>();
+    private ArrayList<Lexeme> lexemes = new ArrayList<>();
 
 
     public Node(String name) {
-        this.name = name;
-    }
-
-
-
-    public void setName(String name) {
         this.name = name;
     }
 
@@ -45,13 +39,6 @@ public class Node {
     }
 
     public ArrayList<Lexeme> getLexemes(){return lexemes;}
-
-    public ArrayList<Lexeme> getReverseLexemes(){
-
-        ArrayList<Lexeme> buff = new ArrayList<>(lexemes);
-        Collections.reverse(buff);
-        return buff;
-    }
 
 
 }

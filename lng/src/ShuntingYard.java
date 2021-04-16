@@ -1,10 +1,9 @@
 import java.util.Stack;
-
 import java.util.*;
 
 public class ShuntingYard {
 
-    private HashMap<String, String> map = new HashMap<>();
+    private HashMap<String, Object> map = new HashMap<>();
 
     private static final Map<String, Integer> MAIN_MATH_OPERATIONS;
 
@@ -12,15 +11,16 @@ public class ShuntingYard {
 
         MAIN_MATH_OPERATIONS = new HashMap<>();
 
-        MAIN_MATH_OPERATIONS.put("if", 5);
-        MAIN_MATH_OPERATIONS.put("else", 5);
-        MAIN_MATH_OPERATIONS.put("while", 5);
-
         MAIN_MATH_OPERATIONS.put("=", 3);
         MAIN_MATH_OPERATIONS.put("<", 3);
         MAIN_MATH_OPERATIONS.put(">", 3);
         MAIN_MATH_OPERATIONS.put("==", 3);
         MAIN_MATH_OPERATIONS.put("!=", 3);
+
+        MAIN_MATH_OPERATIONS.put("new", 2);
+
+        MAIN_MATH_OPERATIONS.put("addFront", 2);
+        MAIN_MATH_OPERATIONS.put("print", 2);
 
         MAIN_MATH_OPERATIONS.put("+", 2);
         MAIN_MATH_OPERATIONS.put("-", 2);
@@ -119,6 +119,19 @@ public class ShuntingYard {
 
             }
 
+        }else if(exp.getChild().get(0).getName().equals("function_call")){
+
+            String buff = " "+exp.getChild().get(0).getLexemes().get(0).getValue();
+
+
+            for (Node node: getDefinedNode(exp.getChild().get(0), "arguments").getChild()) {
+                buff = " "+  node.getLexemes().get(0).getValue() + buff;
+            }
+
+            System.out.println(buff);
+
+            calculateFunction(buff);
+
         }
 
     }
@@ -179,6 +192,9 @@ public class ShuntingYard {
         return globalBuffer;
 
     }
+
+
+
 
     private Node getDefinedNode(Node root, String nodeName){
 
@@ -266,6 +282,8 @@ public class ShuntingYard {
 
     }
 
+
+
     //Variant old
 
     public void calculateExpression(String exp) {
@@ -276,29 +294,86 @@ public class ShuntingYard {
 
         StringTokenizer tokenizer = new StringTokenizer(rpn, " ");
 
-        Stack<String> stack = new Stack<>();
+        Stack<Object> stack = new Stack<>();
 
         while (tokenizer.hasMoreTokens()) {
 
             String token = tokenizer.nextToken();
+
             // Операнд.
             if (!MAIN_MATH_OPERATIONS.keySet().contains(token)) {
+
                 stack.push(token);
+
             } else {
 
-                String op2 = stack.pop();
-                String op1 = stack.empty() ? "0" : stack.pop();
+                Object op2 = stack.pop(); // dll
+                Object op1 = stack.empty() ? "0" : stack.pop();
 
-                if (token.equals("*")) {
-                    stack.push(multiply(op1,op2));
-                } else if (token.equals("/")) {
-                    stack.push(divide(op1,op2));
-                } else if (token.equals("+")) {
-                    stack.push(add(op1,op2));
-                } else if (token.equals("-")) {
-                    stack.push(sub(op1,op2));
-                }else if(token.equals("=")){
-                    mapVar(op1, op2);
+                switch (token){
+
+                    case "*": stack.push(multiply(op1,op2));
+                    case "/": stack.push(divide(op1,op2));
+                    case "+": stack.push(add(op1,op2));
+                    case "-": stack.push(sub(op1,op2));
+
+                    case "=": mapVar(op1, op2);
+                    case "new": {stack.push(op1); stack.push(NewDataStruct(op1));}
+
+                }
+
+            }
+
+        }
+
+        System.out.println(map.toString());
+        System.out.println("\n");
+
+    }
+
+    public void calculateFunction(String rpn){
+
+        StringTokenizer tokenizer = new StringTokenizer(rpn, " ");
+
+        Stack<Object> stack = new Stack<>();
+
+        while (tokenizer.hasMoreTokens()) {
+
+            String token = tokenizer.nextToken();
+
+            // Операнд.
+            if (!MAIN_MATH_OPERATIONS.keySet().contains(token)) {
+
+                System.out.println(token);
+                stack.push(token);
+
+            } else {
+
+                System.out.println(stack.toString());
+
+                Object op1 = stack.pop();
+                Object op2 = stack.empty() ? "0" : stack.pop();
+                Object op3 = stack.empty() ? "0" : stack.pop();
+
+                switch (token){
+
+                    case "addFront": addFront(op1, op2);
+                    //case "addEnd": addFront(op1, op2);
+                    //case "forward": addFront(op1, op2);
+                    //case "backward": addFront(op1, op2);
+                    //case "toFront": addFront(op1, op2);
+                   // case "toEnd": addFront(op1, op2);
+
+                    //case "get": addFront(op1, op2);
+                    //case "remove": addFront(op1, op2);
+                    //case "size": addFront(op1, op2);
+                   // case "isEmpty": addFront(op1, op2);
+                   // case "clear": addFront(op1, op2);
+                    case "print": print(op1);
+                   // case "addFront": addFront(op1, op2);
+
+                    //case "containsKey": addFront(op1, op2);
+
                 }
 
             }
@@ -378,13 +453,9 @@ public class ShuntingYard {
 
         expression = expression.replace(" ", "");
 
-        expression.replace("{","(");
-        expression.replace("}",")");
-
         Set<String> operationSymbols = new HashSet<>(operations.keySet());
         operationSymbols.add(leftBracket);
         operationSymbols.add(rightBracket);
-
 
         int index = 0;
         boolean findNext = true;
@@ -471,214 +542,356 @@ public class ShuntingYard {
 
     }
 
-    public void calculateExpression(ArrayList<Lexeme> lexemes){
 
-        StringBuilder exp = new StringBuilder();
-
-        for (Lexeme l: lexemes) {
-            exp.append(l.getValue()).append(" ");
-        }
-
-        System.out.println(exp);
-
-
-        String rpn = sortingStation(exp.toString(), MAIN_MATH_OPERATIONS);
-
-        //String rpn = sortingStation(lexemes, MAIN_MATH_OPERATIONS);
-
-        System.out.println("RPN: "+rpn);
-
-
-        StringTokenizer tokenizer = new StringTokenizer(rpn, " ");
-
-        Stack<String> stack = new Stack<>();
-
-        while (tokenizer.hasMoreTokens()) {
-
-            String token = tokenizer.nextToken();
-            stack.push(token);
-
-            // Операнд.
-            if (!MAIN_MATH_OPERATIONS.keySet().contains(token)) {
-                stack.push(token);
-            } else {
-
-                String op2 = stack.pop();
-                String op1 = stack.empty() ? "0" : stack.pop();
-
-                switch (token) {
-                    case "*": stack.push(multiply(op1,op2));
-                    case "/": stack.push(divide(op1,op2));
-                    case "+": stack.push(add(op1,op2));
-                    case "-": stack.push(sub(op1,op2));
-                    case "<": stack.push(Boolean.toString(Less(op1,op2)));
-                    case ">": stack.push(Boolean.toString(Greater(op1,op2)));
-                    case "==": stack.push(Boolean.toString(Equals(op1,op2)));
-                    case "!=": stack.push(Boolean.toString(NotEquals(op1,op2)));
-
-                }
-
-                System.out.println(stack.toString());
-
-            }
-
-        }
-
-        System.out.println(map.toString());
-        System.out.println("\n");
-
-
-    }
 
 
     //Math operations
 
-    private String add(String op1, String op2){
+    private Object add(Object op1, Object op2){
 
-        //System.out.println("add");
+        int a, b;
 
-        if(map.containsKey(op1) && !map.containsKey(op2)){
-            return Integer.toString(Integer.parseInt(map.get(op1)) + Integer.parseInt(op2));
-        }else if(!map.containsKey(op1) && map.containsKey(op2)){
-            return Integer.toString(Integer.parseInt(op1) + Integer.parseInt(map.get(op2)));
-        } else if(map.containsKey(op1) && map.containsKey(op2)){
-            return Integer.toString(Integer.parseInt(map.get(op1)) + Integer.parseInt(map.get(op2)));
-        } else if(!map.containsKey(op1) && !map.containsKey(op2)){
-            return Integer.toString(Integer.parseInt(op1) + Integer.parseInt(op2));
-        }
+        if(map.containsKey(op1)){
+            a = Integer.parseInt((String) map.get(op1));
+        }else{ a = Integer.parseInt((String) op1);}
 
-        return null;
+        if(map.containsKey(op1)){
+            b = Integer.parseInt((String)map.get(op2));
+        }else{ b = Integer.parseInt((String) op2);}
+
+        return Integer.toString(a + b);
 
     }
 
-    private String sub(String op1, String op2){
+    private Object sub(Object op1, Object op2){
 
-        //System.out.println("sub");
+        int a, b;
 
-        if(map.containsKey(op1) && !map.containsKey(op2)){
-            return Integer.toString(Integer.parseInt(map.get(op1)) - Integer.parseInt(op2));
-        }else if(!map.containsKey(op1) && map.containsKey(op2)){
-            return Integer.toString(Integer.parseInt(op1) - Integer.parseInt(map.get(op2)));
-        } else if(map.containsKey(op1) && map.containsKey(op2)){
-            return Integer.toString(Integer.parseInt(map.get(op1)) - Integer.parseInt(map.get(op2)));
-        } else if(!map.containsKey(op1) && !map.containsKey(op2)){
-            return Integer.toString(Integer.parseInt(op1) - Integer.parseInt(op2));
-        }
+        if(map.containsKey(op1)){
+            a = Integer.parseInt((String)map.get(op1));
+        }else{ a = Integer.parseInt((String) op1);}
 
-        return null;
+        if(map.containsKey(op1)){
+            b = Integer.parseInt((String)map.get(op2));
+        }else{ b = Integer.parseInt((String) op2);}
+
+        return Integer.toString(a - b);
 
     }
 
-    private String multiply(String op1, String op2){
+    private Object multiply(Object op1, Object op2){
 
-       // System.out.println("mul");
+        int a, b;
 
-        if(map.containsKey(op1) && !map.containsKey(op2)){
-            return Integer.toString(Integer.parseInt(map.get(op1)) * Integer.parseInt(op2));
-        }else if(!map.containsKey(op1) && map.containsKey(op2)){
-            return Integer.toString(Integer.parseInt(op1) * Integer.parseInt(map.get(op2)));
-        } else if(map.containsKey(op1) && map.containsKey(op2)){
-            return Integer.toString(Integer.parseInt(map.get(op1)) * Integer.parseInt(map.get(op2)));
-        } else if(!map.containsKey(op1) && !map.containsKey(op2)){
-            return Integer.toString(Integer.parseInt(op1) * Integer.parseInt(op2));
-        }
+        if(map.containsKey(op1)){
+            a = Integer.parseInt((String)map.get(op1));
+        }else{ a = Integer.parseInt((String) op1);}
 
-        return null;
+        if(map.containsKey(op1)){
+            b = Integer.parseInt((String)map.get(op2));
+        }else{ b = Integer.parseInt((String) op2);}
+
+        return Integer.toString(a * b);
 
     }
 
-    private String divide(String op1, String op2){
+    private Object divide(Object op1, Object op2){
 
-        //System.out.println("div");
+        int a, b;
 
-        if(map.containsKey(op1) && !map.containsKey(op2)){
-            return Integer.toString(Integer.parseInt(map.get(op1)) / Integer.parseInt(op2));
-        }else if(!map.containsKey(op1) && map.containsKey(op2)){
-            return Integer.toString(Integer.parseInt(op1) / Integer.parseInt(map.get(op2)));
-        } else if(map.containsKey(op1) && map.containsKey(op2)){
-            return Integer.toString(Integer.parseInt(map.get(op1)) / Integer.parseInt(map.get(op2)));
-        } else if(!map.containsKey(op1) && !map.containsKey(op2)){
-            return Integer.toString(Integer.parseInt(op1) / Integer.parseInt(op2));
-        }
+        if(map.containsKey(op1)){
+            a = Integer.parseInt((String)map.get(op1));
+        }else{ a = Integer.parseInt((String) op1);}
 
-        return null;
+        if(map.containsKey(op1)){
+            b = Integer.parseInt((String)map.get(op2));
+        }else{ b = Integer.parseInt((String) op2);}
+
+        return Integer.toString(a / b);
 
     }
+
+
 
     //Logical operations
 
-    private boolean Greater(String op1, String op2){
+    private boolean Greater(Object op1, Object op2){
 
-        //System.out.println("div");
+        int a, b;
 
-        if(map.containsKey(op1) && !map.containsKey(op2)){
-            return Integer.parseInt(map.get(op1)) > Integer.parseInt(op2);
-        }else if(!map.containsKey(op1) && map.containsKey(op2)){
-            return Integer.parseInt(op1) > Integer.parseInt(map.get(op2));
-        } else if(map.containsKey(op1) && map.containsKey(op2)){
-            return Integer.parseInt(map.get(op1)) > Integer.parseInt(map.get(op2));
-        } else if(!map.containsKey(op1) && !map.containsKey(op2)){
-            return Integer.parseInt(op1) > Integer.parseInt(op2);
-        }else {return false;}
+        if(map.containsKey(op1)){
+            a = Integer.parseInt((String)map.get(op1));
+        }else{ a = Integer.parseInt((String)op1);}
 
-    }
+        if(map.containsKey(op1)){
+            b = Integer.parseInt((String)map.get(op2));
+        }else{ b = Integer.parseInt((String) op2);}
 
-    private boolean Less(String op1, String op2){
-
-        //System.out.println("div");
-
-        if(map.containsKey(op1) && !map.containsKey(op2)){
-            return Integer.parseInt(map.get(op1)) < Integer.parseInt(op2);
-        }else if(!map.containsKey(op1) && map.containsKey(op2)){
-            return Integer.parseInt(op1) < Integer.parseInt(map.get(op2));
-        } else if(map.containsKey(op1) && map.containsKey(op2)){
-            return Integer.parseInt(map.get(op1)) < Integer.parseInt(map.get(op2));
-        } else if(!map.containsKey(op1) && !map.containsKey(op2)){
-            return Integer.parseInt(op1) < Integer.parseInt(op2);
-        }else {return false;}
+        return a > b;
 
     }
 
-    private boolean Equals(String op1, String op2){
+    private boolean Less(Object op1, Object op2){
 
-        //System.out.println("div");
+        int a, b;
 
-        if(map.containsKey(op1) && !map.containsKey(op2)){
-            return Integer.parseInt(map.get(op1)) == Integer.parseInt(op2);
-        }else if(!map.containsKey(op1) && map.containsKey(op2)){
-            return Integer.parseInt(op1) == Integer.parseInt(map.get(op2));
-        } else if(map.containsKey(op1) && map.containsKey(op2)){
-            return Integer.parseInt(map.get(op1)) == Integer.parseInt(map.get(op2));
-        } else if(!map.containsKey(op1) && !map.containsKey(op2)){
-            return Integer.parseInt(op1) == Integer.parseInt(op2);
-        }else {return false;}
+        if(map.containsKey(op1)){
+            a = Integer.parseInt((String)map.get(op1));
+        }else{ a = Integer.parseInt((String) op1);}
+
+        if(map.containsKey(op1)){
+            b = Integer.parseInt((String)map.get(op2));
+        }else{ b = Integer.parseInt((String) op2);}
+
+        return a < b;
+
+    }
+
+    private boolean Equals(Object op1, Object op2){
+
+        int a, b;
+
+        if(map.containsKey(op1)){
+            a = Integer.parseInt((String)map.get(op1));
+        }else{ a = Integer.parseInt((String) op1);}
+
+        if(map.containsKey(op1)){
+            b = Integer.parseInt((String)map.get(op2));
+        }else{ b = Integer.parseInt((String) op2);}
+
+        return a == b;
 
     }
 
-    private boolean NotEquals(String op1, String op2){
+    private boolean NotEquals(Object op1, Object op2){
 
-        //System.out.println("div");
+        int a, b;
 
-        if(map.containsKey(op1) && !map.containsKey(op2)){
-            return Integer.parseInt(map.get(op1)) != Integer.parseInt(op2);
-        }else if(!map.containsKey(op1) && map.containsKey(op2)){
-            return Integer.parseInt(op1) != Integer.parseInt(map.get(op2));
-        } else if(map.containsKey(op1) && map.containsKey(op2)){
-            return Integer.parseInt(map.get(op1)) != Integer.parseInt(map.get(op2));
-        } else if(!map.containsKey(op1) && !map.containsKey(op2)){
-            return Integer.parseInt(op1) != Integer.parseInt(op2);
-        }else {return false;}
+        if(map.containsKey(op1)){
+            a = Integer.parseInt((String)map.get(op1));
+        }else{ a = Integer.parseInt((String) op1);}
+
+        if(map.containsKey(op1)){
+            b = Integer.parseInt((String)map.get(op2));
+        }else{ b = Integer.parseInt((String) op2);}
+
+        return a != b;
 
     }
+
+
+
+    //Func operations
+
+    //common
+    private Object NewDataStruct(Object struct){
+
+        Object temp = new Object();
+        String str = (String) struct;
+
+        if(str.equals("DoubleLinkedList")){
+            return new DoubleLinkedList<Integer>();
+        }else if(str.equals("HashMap")){
+            temp =  new CustomHashMap<String,String>();
+        }
+
+        return temp;
+
+    }
+
+
+    private String get(String op1, String key){
+
+        Object obj = map.get(op1);
+
+        if(obj instanceof DoubleLinkedList){
+            int buff = ((DoubleLinkedList<Integer>)obj).getCurrent();
+            return Integer.toString(buff);
+        }else{
+            System.out.println("error");
+            return null;
+        }
+
+    }
+
+    private void remove(String op1){
+
+        Object obj = map.get(op1);
+
+        if(obj instanceof DoubleLinkedList){
+            ((DoubleLinkedList<Integer>)obj).removeCurrent();
+        }else{
+            System.out.println("error");
+        }
+
+    }
+
+    private String size(String op1){
+
+        Object obj = map.get(op1);
+
+        if(obj instanceof DoubleLinkedList){
+            int buff = ((DoubleLinkedList<Integer>)obj).size();
+            return Integer.toString(buff);
+        }else{
+            System.out.println("error");
+            return null;
+        }
+
+    }
+
+    private boolean isEmpty(String op1){
+
+        Object obj = map.get(op1);
+
+        if(obj instanceof DoubleLinkedList){
+            return ((DoubleLinkedList)obj).isEmpty();
+        }else if(obj instanceof CustomHashMap) {
+            return ((CustomHashMap)obj).isEmpty();
+        }else{
+            System.out.println("error");
+            return false;
+        }
+
+    }
+
+    private void clear(String op1 ){
+
+        Object obj = map.get(op1);
+
+        if(obj instanceof DoubleLinkedList){
+           // ((DoubleLinkedList<Integer>)obj).clear();
+        }else{
+            System.out.println("error");
+        }
+
+    }
+
+    private void print(Object op1){
+
+        System.out.println("print");
+
+        Object obj = map.get(op1);
+
+        System.out.println(((DoubleLinkedList)obj).toString());
+
+        if(obj instanceof DoubleLinkedList){
+        }else if(obj instanceof CustomHashMap){
+            System.out.println(obj.toString());
+        }
+
+    }
+
+    //dll
+
+    private void addFront(Object op1, Object key){
+
+        Object obj = map.get(op1);
+
+        System.out.println(((DoubleLinkedList)obj).toString());
+
+        if(obj.getClass() == DoubleLinkedList.class){
+            ((DoubleLinkedList)obj).addFront(Integer.parseInt((String) key));
+        }else{
+            System.out.println("error during addFront");
+        }
+
+    }
+
+    private void addEnd(String op1, String key){
+
+        Object obj = map.get(op1);
+
+        if(obj instanceof DoubleLinkedList){
+            ((DoubleLinkedList<Integer>)obj).addEnd(Integer.parseInt(key));
+        }else{
+            System.out.println("error");
+        }
+
+    }
+
+    private void forward(String op1){
+
+        Object obj = map.get(op1);
+
+        if(obj instanceof DoubleLinkedList){
+            ((DoubleLinkedList<Integer>)obj).iterForward();
+        }else{
+            System.out.println("error");
+        }
+
+    }
+
+    private void backward(String op1){
+
+        Object obj = map.get(op1);
+
+        if(obj instanceof DoubleLinkedList){
+            ((DoubleLinkedList<Integer>)obj).iterBackward();
+        }else{
+            System.out.println("error");
+        }
+
+    }
+
+    private void toFront(String op1){
+
+        Object obj = map.get(op1);
+
+        if(obj instanceof DoubleLinkedList){
+            ((DoubleLinkedList<Integer>)obj).toFront();
+        }else{
+            System.out.println("error");
+        }
+
+    }
+
+    private void toEnd(String op1){
+
+        Object obj = map.get(op1);
+
+        if(obj instanceof DoubleLinkedList){
+            ((DoubleLinkedList<Integer>)obj).toEnd();
+        }else{
+            System.out.println("error");
+        }
+
+    }
+
+    private void addBefore(){
+
+    }
+    private void addAfter(){
+
+
+    }
+
+
+    //hashmap
+
+    private boolean containsKey(String op1, String key){
+        return ((HashMap)map.get(op1)).containsKey(key);
+    }
+
+
 
     //Other operations
 
-    private void mapVar(String var, String value){
+    private void mapVar(Object var, Object value){
+
+        if(map.containsKey((String) var)){
+            map.remove(var);
+        }
+        map.put((String) var,value);
+
+    }
+
+    private void mapVar(String var, Object obj){
 
         if(map.containsKey(var)){
             map.remove(var);
         }
-        map.put(var,value);
+        map.put(var,obj);
 
     }
 

@@ -1,12 +1,10 @@
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Terminal {
 
-    private String name;
-    private Pattern pattern;
-    private int priority;
-// add ignorable
+    private final String name;
+    private final Pattern pattern;
+    private final int priority;
 
     public Terminal(String n, String pat){
 

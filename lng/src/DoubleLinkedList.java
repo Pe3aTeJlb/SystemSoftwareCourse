@@ -1,12 +1,10 @@
 import java.util.NoSuchElementException;
 
-public class DoubleLinkedList<Type>{
-
+public class DoubleLinkedList<Type> extends Object{
 
     private ListNode<Type> front;
 
     private int size;
-
 
     public Type iterForward(){
 
@@ -211,6 +209,8 @@ public class DoubleLinkedList<Type>{
 
     @Override
     public String toString() {
+
+        System.out.println("print dll");
 
         ListNode<Type> temp = front;
         StringBuilder builder = new StringBuilder("[");
