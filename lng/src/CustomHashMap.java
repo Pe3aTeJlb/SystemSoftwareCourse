@@ -1,4 +1,3 @@
-import javax.swing.text.DefaultCaret;
 import java.util.*;
 
 public class CustomHashMap<K, V> extends Object{
@@ -118,12 +117,12 @@ public class CustomHashMap<K, V> extends Object{
     @Override
     public String toString(){
 
+        if(this.size == 0){
+            return "hsmp{"+this.hashCode()+"}";
+        }
+
         StringBuilder sb = new StringBuilder();
         sb.append('{');
-
-        if(this.size == 0){
-            return "{}";
-        }
 
         for(int i = 0; i < this.size; i++){
 

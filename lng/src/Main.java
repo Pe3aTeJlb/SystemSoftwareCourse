@@ -20,8 +20,9 @@ public class Main {
         System.out.println("\n\n"+"Restore expression"+"\n");
 
         //shuntingYard.constructRPN(parser.getRoot());
-        shuntingYard.constructExpression(parser.getRoot());
-        //shuntingYard.calculateExpression(lexer.getLexemes());
+        //shuntingYard.constructExpression(parser.getRoot());
+
+        TuringMachine turingMachine = new TuringMachine(lexer.getLexemes(), parser.getRoot());
 
     }
 }
