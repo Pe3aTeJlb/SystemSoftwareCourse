@@ -29,8 +29,11 @@ public class ShuntingYard {
         MAIN_MATH_OPERATIONS.put("toEnd", 2);
 
         MAIN_MATH_OPERATIONS.put("put", 2);
-
+        MAIN_MATH_OPERATIONS.put("get", 2);
         MAIN_MATH_OPERATIONS.put("contains", 2);
+
+        MAIN_MATH_OPERATIONS.put("remove", 2);
+
         MAIN_MATH_OPERATIONS.put("isEmpty", 2);
 
         MAIN_MATH_OPERATIONS.put("size", 2);
@@ -54,6 +57,9 @@ public class ShuntingYard {
             checkType(n);
         }
 
+        //System.out.println("\n\n"+"final RPN"+"\n");
+        //constructRPN(root);
+
     }
 
     public void constructRPN(Node root){
@@ -76,21 +82,34 @@ public class ShuntingYard {
 
                 String buff = "";
 
-                for (Lexeme l : exp.getChild().get(0).getLexemes()) {
-                    buff += l.getValue();
+                if(getDefinedNode(exp.getChild().get(0), "value_expr").getChild().get(0).getName() == "function_call"){
+
+                    buff += exp.getChild().get(0).getLexemes().get(0).getValue();
+
+                    buff += checkTypeButDontCalculate(getDefinedNode(exp.getChild().get(0), "value_expr"));
+
+                    buff += " "+exp.getChild().get(0).getLexemes().get(1).getValue();
+                    System.out.println(buff);
+
+                    calculateFunction(buff);
+
+                }else {
+
+                    for (Lexeme l : exp.getChild().get(0).getLexemes()) {
+                        buff += l.getValue();
+                    }
+
+                    buff += restoreAssign(getDefinedNode(exp.getChild().get(0), "value_expr"));
+                    System.out.println(buff);
+
+                    calculateExpression(buff);
                 }
 
-                buff += restoreAssign(getDefinedNode(exp.getChild().get(0), "value_expr"));
-                System.out.println(buff);
-
-                calculateExpression(buff);
-
-                break;
             }
 
             case "if_expr" -> {
 
-                String buff = restoreCondition(getDefinedNode(exp.getChild().get(0), "logical_expr"));
+                String buff = restoreCondition(getDefinedNode(exp.getChild().get(0), "function_call"));
 
                 System.out.println(buff);
 
@@ -109,7 +128,8 @@ public class ShuntingYard {
                     System.out.println("false branch");
                     if (exp.getChild().get(0).getChild().size() > 2) {
                         for (Node n : exp.getChild().get(0).getChild().get(2).getChild()) {
-                            checkType(n);
+                            System.out.println(n.getChild().get(0).getName());
+                            checkType(n.getChild().get(0));
                         }
                     }
 
@@ -142,10 +162,10 @@ public class ShuntingYard {
                 }
 
             }
+
             case "function_call" -> {
 
                 String buff = " " + exp.getChild().get(0).getLexemes().get(0).getValue();
-
 
                 for (Node node : getDefinedNode(exp.getChild().get(0), "arguments").getChild()) {
                     buff = " " + node.getLexemes().get(0).getValue() + buff;
@@ -156,6 +176,7 @@ public class ShuntingYard {
                 calculateFunction(buff);
 
             }
+
         }
 
     }
@@ -165,7 +186,7 @@ public class ShuntingYard {
         String globalBuffer = "";
 
         switch (exp.getChild().get(0).getName()) {
-            case "assign_expr" -> {
+            case ("assign_expr") -> {
 
                 String buff = "";
 
@@ -179,7 +200,7 @@ public class ShuntingYard {
                 return justReturnExpression(buff);
 
             }
-            case "if_expr" -> {
+            case ("if_expr") -> {
 
                 String buff = restoreCondition(getDefinedNode(exp.getChild().get(0), "logical_expr"));
 
@@ -202,7 +223,7 @@ public class ShuntingYard {
 
                 break;
             }
-            case "while_expr" -> {
+            case ("while_expr") -> {
 
                 String buff = restoreCondition(getDefinedNode(exp.getChild().get(0), "logical_expr"));
 
@@ -215,6 +236,20 @@ public class ShuntingYard {
                 }
 
                 break;
+            }
+            case ("function_call") -> {
+
+                String buff = " " + exp.getChild().get(0).getLexemes().get(0).getValue();
+
+
+                for (Node node : getDefinedNode(exp.getChild().get(0), "arguments").getChild()) {
+                    buff = " " + node.getLexemes().get(0).getValue() + buff;
+                }
+
+                System.out.println(buff);
+
+                return buff;
+
             }
         }
 
@@ -241,7 +276,6 @@ public class ShuntingYard {
 
         if(root.getLexemes().size()>=2){
 
-            System.out.println("lol");
             System.out.println(root.getChild().size());
 
             buff += root.getLexemes().get(0).getValue();
@@ -350,6 +384,12 @@ public class ShuntingYard {
 
                     case ("=") -> mapVar(op1, op2);
                     case ("new") -> {stack.push(op1); stack.push(NewDataStruct(op2));}
+
+                    case ("size") -> {stack.push(op1); stack.push(size(op2));}
+
+
+                    case ("get") -> stack.push(get(op1,op2));
+
                     default -> System.out.println("shuinting error");
                 }
 
@@ -386,7 +426,11 @@ public class ShuntingYard {
                 Object op2 = stack.empty() ? "0" : stack.pop();
                 Object op3 = stack.empty() ? "0" : stack.pop();
 
+                System.out.println(op1+" "+ op2 + " " + op3);
+
                 switch (token){
+
+                    case ("=") -> {mapVar(op1, op2);}
 
                     case ("addFront") -> addFront(op1, op2);
                     case ("addEnd") -> addEnd(op1, op2);
@@ -400,20 +444,15 @@ public class ShuntingYard {
                     case ("toFront") -> toFront(op1);
                     case ("toEnd") -> toEnd(op1);
 
-                    //case ("get") -> get(op1, op2);
+
                     case ("remove") -> remove(op1, op2);
                     case ("clear") -> clear(op1);
                     case ("print") -> print(op1);
 
                     case ("put") -> put(op1, op2, op3);
+                    case ("get") -> {stack.push(get(op1, op2));stack.push(op3);}
 
                     default -> System.out.println("shunting error");
-
-                   // case "containsKey": addFront(op1, op2);
-
-                        //case "size": addFront(op1, op2);
-                        // case "isEmpty": addFront(op1, op2);
-
                 }
 
             }
@@ -446,6 +485,8 @@ public class ShuntingYard {
                 String op2 = stack.pop();
                 String op1 = stack.empty() ? "0" : stack.pop();
 
+                System.out.println(op1 + " "+ op2);
+
                 switch (token){
 
                     case(">") -> {return Greater(op1, op2);}
@@ -454,7 +495,7 @@ public class ShuntingYard {
                     case("!=") -> {return NotEquals(op1, op2);}
 
                     case("contains") -> {return containsKey(op1, op2);}
-                    case("isEmpty") -> {return isEmpty(op1);}
+                    case("isEmpty") -> {return isEmpty(op2);}
 
                     default -> System.out.println("");
 
@@ -705,14 +746,16 @@ public class ShuntingYard {
     }
 
 
-    private String get(Object op1, String key){
+    private Object get(Object op1, Object key){
 
         Object obj = map.get(op1);
 
         if(obj instanceof DoubleLinkedList){
-            int buff = ((DoubleLinkedList<Integer>)obj).getCurrent();
+            int buff = ((DoubleLinkedList<Integer>)obj).getByIndex(Integer.parseInt((String)key));
             return Integer.toString(buff);
-        }else{
+        }else if(obj instanceof CustomHashMap){
+           return ((CustomHashMap)obj).get(key);
+        } else{
             System.out.println("error");
             return null;
         }
@@ -721,12 +764,10 @@ public class ShuntingYard {
 
     private void remove(Object op1, Object op2){
 
-        System.out.println("rem");
-
         Object obj = map.get(op1);
 
         if(obj instanceof DoubleLinkedList){
-            ((DoubleLinkedList)obj).remove(Integer.parseInt((String)op2));
+            ((DoubleLinkedList)obj).removeByIndex(Integer.parseInt((String)op2));
         }else if(obj instanceof CustomHashMap){
             ((CustomHashMap)obj).remove(op2);
         }else{
@@ -758,7 +799,7 @@ public class ShuntingYard {
         }else if(obj instanceof CustomHashMap) {
             return ((CustomHashMap)obj).isEmpty();
         }else{
-            System.out.println("error");
+            System.out.println("error during empty check");
             return false;
         }
 
@@ -771,7 +812,7 @@ public class ShuntingYard {
         if(obj instanceof DoubleLinkedList){
            ((DoubleLinkedList)obj).clear();
         }else if(obj instanceof CustomHashMap){
-            //((CustomHashMap)obj).clear();
+            ((CustomHashMap)obj).clear();
         }
         else{
             System.out.println("error");
@@ -924,14 +965,6 @@ public class ShuntingYard {
             map.remove(var);
         }
         map.put((String) var,value);
-
-    }
-
-    private void mapVar(String var, Object obj){
-
-        map.remove(var);
-
-        map.put(var,obj);
 
     }
 

@@ -1,3 +1,4 @@
+import javax.swing.text.DefaultCaret;
 import java.util.*;
 
 public class CustomHashMap<K, V> extends Object{
@@ -105,6 +106,12 @@ public class CustomHashMap<K, V> extends Object{
         }
 
         return set;
+
+    }
+
+    public void clear(){
+
+        values = new MapEntry[DEFAULT_CAPACITY];
 
     }
 

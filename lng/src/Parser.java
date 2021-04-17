@@ -69,6 +69,8 @@ public class Parser {
 
             case ("NEW_KW") -> node.addChild(assign_struct());
 
+            case ("COMMON_FUNC_KW") -> node.addChild(function_call());
+
             case ("L_BR") -> {
                 match("L_BR", node);
                 node.addChild(value_expr());
@@ -159,6 +161,7 @@ public class Parser {
     private Node else_expr() throws Exception {
 
         Node node = new Node("else_expr");
+
         match("ELSE_KW", node);
         node.addChild(if_else_body());
 
@@ -182,12 +185,23 @@ public class Parser {
 
         Node node = new Node("logical_expr");
 
-        node.addChild(value_expr());
+        switch (currToken()){
 
-        while (currToken().matches("LOGICAL_OP")) {
-            match("LOGICAL_OP", node);
-            node.addChild(value_expr());
+            case ("NUMBER"), ("VAR") -> {
+
+                node.addChild(value_expr());
+
+                while (currToken().matches("LOGICAL_OP")) {
+                    match("LOGICAL_OP", node);
+                    node.addChild(value_expr());
+                }
+
+            }
+
+            case ("COMMON_FUNC_KW") -> node.addChild(function_call());
+
         }
+
 
         return node;
 
@@ -201,7 +215,7 @@ public class Parser {
 
         node.addChild(expr());
 
-        while (currToken().matches("VAR|IF_KW|WHILE_KW")) node.addChild(expr());
+        while (currToken().matches("VAR|IF_KW|WHILE_KW|DLL_FUNC_KW|HASHMAP_FUNC_KW|COMMON_FUNC_KW")) node.addChild(expr());
 
         match("R_S_BR", node);
 

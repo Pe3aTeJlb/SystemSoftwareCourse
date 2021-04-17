@@ -36,6 +36,24 @@ public class DoubleLinkedList<Type> extends Object{
 
     }
 
+    public Type getByIndex(int index){
+
+        ListNode<Type> temp = front;
+
+        while (temp.prev != null) {
+            temp = temp.prev;
+        }
+        System.out.println(temp.data);
+
+        for(int i = 0; i < index; i++){
+            temp = temp.next;
+        }
+        System.out.println(temp.data);
+
+        return temp.data;
+
+    }
+
     public void next(){
 
         if(front.next != null){
@@ -173,6 +191,7 @@ public class DoubleLinkedList<Type> extends Object{
             throw new NoSuchElementException("Element " + x.toString() + " not found");
 
         if (front.data.equals(x)) {
+
             if(size != 1){
                 front = front.next;
                 //front.prev = null;
@@ -183,6 +202,7 @@ public class DoubleLinkedList<Type> extends Object{
                 size--;
                 return;
             }
+
         }
 
         ListNode<Type> current = front;
@@ -202,11 +222,39 @@ public class DoubleLinkedList<Type> extends Object{
 
     }
 
+    public void removeByIndex(int index){
+
+        ListNode<Type> temp = front;
+
+        while (temp.prev != null) {
+            temp = temp.prev;
+        }
+        System.out.println(temp.data);
+
+        for(int i = 0; i < index; i++){
+            temp = temp.next;
+        }
+        System.out.println(temp.data);
+
+        if(temp.prev != null){
+            ListNode<Type> temp2 = temp.prev;
+            temp2.next = temp.next;
+            if(temp.next != null)temp.next.prev = temp2;
+        }else{
+
+            front = temp.next;
+            front.prev = null;
+
+        }
+
+    }
+
     public void removeCurrent(){
         remove(front.data);
     }
 
     public boolean isEmpty() {
+        //System.out.println("check if isEmpty + size " + size);
         return size == 0;
     }
 
