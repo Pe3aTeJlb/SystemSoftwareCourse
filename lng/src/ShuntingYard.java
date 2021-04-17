@@ -3,7 +3,7 @@ import java.util.*;
 
 public class ShuntingYard {
 
-    private HashMap<String, Object> map = new HashMap<>();
+    private final HashMap<String, Object> map = new HashMap<>();
 
     private static final Map<String, Integer> MAIN_MATH_OPERATIONS;
 
@@ -20,7 +20,24 @@ public class ShuntingYard {
         MAIN_MATH_OPERATIONS.put("new", 2);
 
         MAIN_MATH_OPERATIONS.put("addFront", 2);
+        MAIN_MATH_OPERATIONS.put("addEnd", 2);
+        MAIN_MATH_OPERATIONS.put("addAfter", 2);
+        MAIN_MATH_OPERATIONS.put("addBefore", 2);
+        MAIN_MATH_OPERATIONS.put("forward", 2);
+        MAIN_MATH_OPERATIONS.put("backward", 2);
+        MAIN_MATH_OPERATIONS.put("toFront", 2);
+        MAIN_MATH_OPERATIONS.put("toEnd", 2);
+
+        MAIN_MATH_OPERATIONS.put("put", 2);
+
+        MAIN_MATH_OPERATIONS.put("contains", 2);
+        MAIN_MATH_OPERATIONS.put("isEmpty", 2);
+
+        MAIN_MATH_OPERATIONS.put("size", 2);
+
         MAIN_MATH_OPERATIONS.put("print", 2);
+
+
 
         MAIN_MATH_OPERATIONS.put("+", 2);
         MAIN_MATH_OPERATIONS.put("-", 2);
@@ -53,85 +70,92 @@ public class ShuntingYard {
 
     private void checkType(Node exp){
 
-        if(exp.getChild().get(0).getName().equals("assign_expr")){
+        switch (exp.getChild().get(0).getName()) {
 
-            String buff = "";
+            case "assign_expr" -> {
 
-            for (Lexeme l: exp.getChild().get(0).getLexemes()) {
-                buff += l.getValue();
-            }
+                String buff = "";
 
-            buff += restoreAssign(getDefinedNode(exp.getChild().get(0), "value_expr"));
-            System.out.println(buff);
-
-            calculateExpression(buff);
-
-        }else if(exp.getChild().get(0).getName().equals("if_expr")){
-
-            String buff = restoreCondition(getDefinedNode(exp.getChild().get(0), "logical_expr"));
-
-            System.out.println(buff);
-
-            boolean trueBranch = calculateCondition(buff);
-
-            if(trueBranch){
-
-                System.out.println("true branch");
-
-                for (Node n: exp.getChild().get(0).getChild().get(1).getChild()) {
-                    checkType(n);
+                for (Lexeme l : exp.getChild().get(0).getLexemes()) {
+                    buff += l.getValue();
                 }
 
-            }else {
+                buff += restoreAssign(getDefinedNode(exp.getChild().get(0), "value_expr"));
+                System.out.println(buff);
 
-                System.out.println("false branch");
-                if(exp.getChild().get(0).getChild().size() > 2){
-                    for (Node n : exp.getChild().get(0).getChild().get(2).getChild()) {
+                calculateExpression(buff);
+
+                break;
+            }
+
+            case "if_expr" -> {
+
+                String buff = restoreCondition(getDefinedNode(exp.getChild().get(0), "logical_expr"));
+
+                System.out.println(buff);
+
+                boolean trueBranch = calculateCondition(buff);
+
+                if (trueBranch) {
+
+                    System.out.println("true branch");
+
+                    for (Node n : exp.getChild().get(0).getChild().get(1).getChild()) {
                         checkType(n);
                     }
+
+                } else {
+
+                    System.out.println("false branch");
+                    if (exp.getChild().get(0).getChild().size() > 2) {
+                        for (Node n : exp.getChild().get(0).getChild().get(2).getChild()) {
+                            checkType(n);
+                        }
+                    }
+
                 }
 
             }
 
-        }else if(exp.getChild().get(0).getName().equals("while_expr")){
+            case "while_expr" -> {
 
-            String buff = restoreCondition(getDefinedNode(exp.getChild().get(0), "logical_expr"));
+                String buff = restoreCondition(getDefinedNode(exp.getChild().get(0), "logical_expr"));
 
-            System.out.println(buff);
+                System.out.println(buff);
 
-            boolean trueBranch = calculateCondition(buff);
+                boolean trueBranch = calculateCondition(buff);
 
-            if(trueBranch){
+                if (trueBranch) {
 
-                System.out.println("true branch");
+                    System.out.println("true branch");
 
-                for (Node n: exp.getChild().get(0).getChild().get(1).getChild()) {
-                    checkType(n);
+                    for (Node n : exp.getChild().get(0).getChild().get(1).getChild()) {
+                        checkType(n);
+                    }
+
+                    checkType(exp);
+
+                } else {
+
+                    System.out.println("false branch");
+
                 }
 
-                checkType(exp);
+            }
+            case "function_call" -> {
 
-            }else {
+                String buff = " " + exp.getChild().get(0).getLexemes().get(0).getValue();
 
-                System.out.println("false branch");
 
-                return;
+                for (Node node : getDefinedNode(exp.getChild().get(0), "arguments").getChild()) {
+                    buff = " " + node.getLexemes().get(0).getValue() + buff;
+                }
+
+                System.out.println(buff);
+
+                calculateFunction(buff);
 
             }
-
-        }else if(exp.getChild().get(0).getName().equals("function_call")){
-
-            String buff = " "+exp.getChild().get(0).getLexemes().get(0).getValue();
-
-
-            for (Node node: getDefinedNode(exp.getChild().get(0), "arguments").getChild()) {
-                buff = " "+  node.getLexemes().get(0).getValue() + buff;
-            }
-
-            System.out.println(buff);
-
-            calculateFunction(buff);
-
         }
 
     }
@@ -140,53 +164,58 @@ public class ShuntingYard {
 
         String globalBuffer = "";
 
-        if(exp.getChild().get(0).getName().equals("assign_expr")){
+        switch (exp.getChild().get(0).getName()) {
+            case "assign_expr" -> {
 
-            String buff = "";
+                String buff = "";
 
-            for (Lexeme l: exp.getChild().get(0).getLexemes()) {
-                buff += l.getValue();
+                for (Lexeme l : exp.getChild().get(0).getLexemes()) {
+                    buff += l.getValue();
+                }
+
+                buff += restoreAssign(getDefinedNode(exp.getChild().get(0), "value_expr"));
+                System.out.println(buff);
+
+                return justReturnExpression(buff);
+
             }
+            case "if_expr" -> {
 
-            buff += restoreAssign(getDefinedNode(exp.getChild().get(0), "value_expr"));
-            System.out.println(buff);
+                String buff = restoreCondition(getDefinedNode(exp.getChild().get(0), "logical_expr"));
 
-            return justReturnExpression(buff);
+                System.out.println(buff);
 
-        }else if(exp.getChild().get(0).getName().equals("if_expr")){
-
-            String buff = restoreCondition(getDefinedNode(exp.getChild().get(0), "logical_expr"));
-
-            System.out.println(buff);
-
-            globalBuffer += justReturnExpression(buff);
+                globalBuffer += justReturnExpression(buff);
 
 
-            for (Node n: exp.getChild().get(0).getChild().get(1).getChild()) {
-                globalBuffer += "    " + checkTypeButDontCalculate(n);
-            }
-
-            System.out.println("false branch");
-            if(exp.getChild().get(0).getChild().size() > 2){
-                for (Node n : exp.getChild().get(0).getChild().get(2).getChild().get(0).getChild()) {
+                for (Node n : exp.getChild().get(0).getChild().get(1).getChild()) {
                     globalBuffer += "    " + checkTypeButDontCalculate(n);
                 }
+
+                System.out.println("false branch");
+                if (exp.getChild().get(0).getChild().size() > 2) {
+                    for (Node n : exp.getChild().get(0).getChild().get(2).getChild().get(0).getChild()) {
+                        globalBuffer += "    " + checkTypeButDontCalculate(n);
+                    }
+                }
+
+
+                break;
             }
+            case "while_expr" -> {
 
+                String buff = restoreCondition(getDefinedNode(exp.getChild().get(0), "logical_expr"));
 
+                System.out.println(buff);
 
-        }else if(exp.getChild().get(0).getName().equals("while_expr")){
+                globalBuffer += justReturnExpression(buff);
 
-            String buff = restoreCondition(getDefinedNode(exp.getChild().get(0), "logical_expr"));
+                for (Node n : exp.getChild().get(0).getChild().get(1).getChild()) {
+                    globalBuffer += "    " + checkTypeButDontCalculate(n);
+                }
 
-            System.out.println(buff);
-
-            globalBuffer += justReturnExpression(buff);
-
-            for (Node n: exp.getChild().get(0).getChild().get(1).getChild()) {
-                globalBuffer += "    "+checkTypeButDontCalculate(n);
+                break;
             }
-
         }
 
         return globalBuffer;
@@ -301,25 +330,27 @@ public class ShuntingYard {
             String token = tokenizer.nextToken();
 
             // Операнд.
-            if (!MAIN_MATH_OPERATIONS.keySet().contains(token)) {
+            if (!MAIN_MATH_OPERATIONS.containsKey(token)) {
 
                 stack.push(token);
 
             } else {
 
-                Object op2 = stack.pop(); // dll
+                Object op2 = stack.pop();
                 Object op1 = stack.empty() ? "0" : stack.pop();
+
+                //System.out.println(op1 + " " + op2);
 
                 switch (token){
 
-                    case "*": stack.push(multiply(op1,op2));
-                    case "/": stack.push(divide(op1,op2));
-                    case "+": stack.push(add(op1,op2));
-                    case "-": stack.push(sub(op1,op2));
+                    case ("*") -> stack.push(multiply(op1,op2));
+                    case ("/") -> stack.push(divide(op1,op2));
+                    case ("+") -> stack.push(add(op1,op2));
+                    case ("-") -> stack.push(sub(op1,op2));
 
-                    case "=": mapVar(op1, op2);
-                    case "new": {stack.push(op1); stack.push(NewDataStruct(op1));}
-
+                    case ("=") -> mapVar(op1, op2);
+                    case ("new") -> {stack.push(op1); stack.push(NewDataStruct(op2));}
+                    default -> System.out.println("shuinting error");
                 }
 
             }
@@ -342,14 +373,14 @@ public class ShuntingYard {
             String token = tokenizer.nextToken();
 
             // Операнд.
-            if (!MAIN_MATH_OPERATIONS.keySet().contains(token)) {
+            if (!MAIN_MATH_OPERATIONS.containsKey(token)) {
 
-                System.out.println(token);
+                //System.out.println(token);
                 stack.push(token);
 
             } else {
 
-                System.out.println(stack.toString());
+                System.out.println(token);
 
                 Object op1 = stack.pop();
                 Object op2 = stack.empty() ? "0" : stack.pop();
@@ -357,22 +388,31 @@ public class ShuntingYard {
 
                 switch (token){
 
-                    case "addFront": addFront(op1, op2);
-                    //case "addEnd": addFront(op1, op2);
-                    //case "forward": addFront(op1, op2);
-                    //case "backward": addFront(op1, op2);
-                    //case "toFront": addFront(op1, op2);
-                   // case "toEnd": addFront(op1, op2);
+                    case ("addFront") -> addFront(op1, op2);
+                    case ("addEnd") -> addEnd(op1, op2);
 
-                    //case "get": addFront(op1, op2);
-                    //case "remove": addFront(op1, op2);
-                    //case "size": addFront(op1, op2);
-                   // case "isEmpty": addFront(op1, op2);
-                   // case "clear": addFront(op1, op2);
-                    case "print": print(op1);
-                   // case "addFront": addFront(op1, op2);
+                    case ("addAfter") -> addAfter(op1, op2, op3);
+                    case ("addBefore") -> addBefore(op1, op2, op3 );
 
-                    //case "containsKey": addFront(op1, op2);
+                    case ("forward") -> forward(op1);
+                    case ("backward") -> backward(op1);
+
+                    case ("toFront") -> toFront(op1);
+                    case ("toEnd") -> toEnd(op1);
+
+                    //case ("get") -> get(op1, op2);
+                    case ("remove") -> remove(op1, op2);
+                    case ("clear") -> clear(op1);
+                    case ("print") -> print(op1);
+
+                    case ("put") -> put(op1, op2, op3);
+
+                    default -> System.out.println("shunting error");
+
+                   // case "containsKey": addFront(op1, op2);
+
+                        //case "size": addFront(op1, op2);
+                        // case "isEmpty": addFront(op1, op2);
 
                 }
 
@@ -399,21 +439,25 @@ public class ShuntingYard {
 
             String token = tokenizer.nextToken();
             // Операнд.
-            if (!MAIN_MATH_OPERATIONS.keySet().contains(token)) {
+            if (!MAIN_MATH_OPERATIONS.containsKey(token)) {
                 stack.push(token);
             } else {
 
                 String op2 = stack.pop();
                 String op1 = stack.empty() ? "0" : stack.pop();
 
-                if(token.equals(">")){
-                    return Greater(op1, op2);
-                }else if(token.equals("<")){
-                    return Less(op1, op2);
-                }else if(token.equals("==")){
-                    return Equals(op1, op2);
-                }else if(token.equals("!=")){
-                    return NotEquals(op1, op2);
+                switch (token){
+
+                    case(">") -> {return Greater(op1, op2);}
+                    case ("<") -> {return Less(op1, op2); }
+                    case("==") -> {return Equals(op1, op2); }
+                    case("!=") -> {return NotEquals(op1, op2);}
+
+                    case("contains") -> {return containsKey(op1, op2);}
+                    case("isEmpty") -> {return isEmpty(op1);}
+
+                    default -> System.out.println("");
+
                 }
 
             }
@@ -432,21 +476,15 @@ public class ShuntingYard {
 
 
 
-
-
     private String sortingStation(String expression, Map<String, Integer> operations) {
-        return sortingStation(expression, operations, "(", ")");
-    }
-
-    private String sortingStation(String expression, Map<String, Integer> operations,
-                                  String leftBracket, String rightBracket) {
 
         if (expression == null || expression.length() == 0)
             throw new IllegalStateException("Expression isn't specified.");
         if (operations == null || operations.isEmpty())
             throw new IllegalStateException("Operations aren't specified.");
 
-
+        String leftBracket = "(";
+        String rightBracket = ")";
         List<String> out = new ArrayList<>();
 
         Stack<String> stack = new Stack<>();
@@ -551,13 +589,9 @@ public class ShuntingYard {
 
         int a, b;
 
-        if(map.containsKey(op1)){
-            a = Integer.parseInt((String) map.get(op1));
-        }else{ a = Integer.parseInt((String) op1);}
+        a = Integer.parseInt((String) map.getOrDefault(op1, op1));
 
-        if(map.containsKey(op1)){
-            b = Integer.parseInt((String)map.get(op2));
-        }else{ b = Integer.parseInt((String) op2);}
+        b = Integer.parseInt((String) map.getOrDefault(op2, op2));
 
         return Integer.toString(a + b);
 
@@ -567,13 +601,9 @@ public class ShuntingYard {
 
         int a, b;
 
-        if(map.containsKey(op1)){
-            a = Integer.parseInt((String)map.get(op1));
-        }else{ a = Integer.parseInt((String) op1);}
+        a = Integer.parseInt((String) map.getOrDefault(op1, op1));
 
-        if(map.containsKey(op1)){
-            b = Integer.parseInt((String)map.get(op2));
-        }else{ b = Integer.parseInt((String) op2);}
+        b = Integer.parseInt((String) map.getOrDefault(op2, op2));
 
         return Integer.toString(a - b);
 
@@ -583,13 +613,9 @@ public class ShuntingYard {
 
         int a, b;
 
-        if(map.containsKey(op1)){
-            a = Integer.parseInt((String)map.get(op1));
-        }else{ a = Integer.parseInt((String) op1);}
+        a = Integer.parseInt((String) map.getOrDefault(op1, op1));
 
-        if(map.containsKey(op1)){
-            b = Integer.parseInt((String)map.get(op2));
-        }else{ b = Integer.parseInt((String) op2);}
+        b = Integer.parseInt((String) map.getOrDefault(op2, op2));
 
         return Integer.toString(a * b);
 
@@ -599,13 +625,9 @@ public class ShuntingYard {
 
         int a, b;
 
-        if(map.containsKey(op1)){
-            a = Integer.parseInt((String)map.get(op1));
-        }else{ a = Integer.parseInt((String) op1);}
+        a = Integer.parseInt((String) map.getOrDefault(op1, op1));
 
-        if(map.containsKey(op1)){
-            b = Integer.parseInt((String)map.get(op2));
-        }else{ b = Integer.parseInt((String) op2);}
+        b = Integer.parseInt((String) map.getOrDefault(op2, op2));
 
         return Integer.toString(a / b);
 
@@ -615,65 +637,49 @@ public class ShuntingYard {
 
     //Logical operations
 
-    private boolean Greater(Object op1, Object op2){
+    private boolean Greater(String op1, String op2){
 
         int a, b;
 
-        if(map.containsKey(op1)){
-            a = Integer.parseInt((String)map.get(op1));
-        }else{ a = Integer.parseInt((String)op1);}
+        a = Integer.parseInt((String) map.getOrDefault(op1, op1));
 
-        if(map.containsKey(op1)){
-            b = Integer.parseInt((String)map.get(op2));
-        }else{ b = Integer.parseInt((String) op2);}
+        b = Integer.parseInt((String) map.getOrDefault(op2, op2));
 
         return a > b;
 
     }
 
-    private boolean Less(Object op1, Object op2){
+    private boolean Less(String op1, String op2){
 
         int a, b;
+        System.out.println((String) map.getOrDefault(op1, op1));
+        a = Integer.parseInt(map.getOrDefault(op1, op1).toString());
 
-        if(map.containsKey(op1)){
-            a = Integer.parseInt((String)map.get(op1));
-        }else{ a = Integer.parseInt((String) op1);}
-
-        if(map.containsKey(op1)){
-            b = Integer.parseInt((String)map.get(op2));
-        }else{ b = Integer.parseInt((String) op2);}
+        b = Integer.parseInt(map.getOrDefault(op2, op2).toString());
 
         return a < b;
 
     }
 
-    private boolean Equals(Object op1, Object op2){
+    private boolean Equals(String op1, String op2){
 
         int a, b;
 
-        if(map.containsKey(op1)){
-            a = Integer.parseInt((String)map.get(op1));
-        }else{ a = Integer.parseInt((String) op1);}
+        a = Integer.parseInt((String) map.getOrDefault(op1, op1));
 
-        if(map.containsKey(op1)){
-            b = Integer.parseInt((String)map.get(op2));
-        }else{ b = Integer.parseInt((String) op2);}
+        b = Integer.parseInt((String) map.getOrDefault(op2, op2));
 
         return a == b;
 
     }
 
-    private boolean NotEquals(Object op1, Object op2){
+    private boolean NotEquals(String op1, String op2){
 
         int a, b;
 
-        if(map.containsKey(op1)){
-            a = Integer.parseInt((String)map.get(op1));
-        }else{ a = Integer.parseInt((String) op1);}
+        a = Integer.parseInt((String) map.getOrDefault(op1, op1));
 
-        if(map.containsKey(op1)){
-            b = Integer.parseInt((String)map.get(op2));
-        }else{ b = Integer.parseInt((String) op2);}
+        b = Integer.parseInt((String) map.getOrDefault(op2, op2));
 
         return a != b;
 
@@ -686,21 +692,20 @@ public class ShuntingYard {
     //common
     private Object NewDataStruct(Object struct){
 
-        Object temp = new Object();
-        String str = (String) struct;
+        //System.out.println("lolxd "+struct);
 
-        if(str.equals("DoubleLinkedList")){
+        if(struct.equals("DoubleLinkedList")){
             return new DoubleLinkedList<Integer>();
-        }else if(str.equals("HashMap")){
-            temp =  new CustomHashMap<String,String>();
+        }else if(struct.equals("HashMap")){
+            return new CustomHashMap<String,String>();
+        }else {
+            return null;
         }
-
-        return temp;
 
     }
 
 
-    private String get(String op1, String key){
+    private String get(Object op1, String key){
 
         Object obj = map.get(op1);
 
@@ -714,19 +719,23 @@ public class ShuntingYard {
 
     }
 
-    private void remove(String op1){
+    private void remove(Object op1, Object op2){
+
+        System.out.println("rem");
 
         Object obj = map.get(op1);
 
         if(obj instanceof DoubleLinkedList){
-            ((DoubleLinkedList<Integer>)obj).removeCurrent();
+            ((DoubleLinkedList)obj).remove(Integer.parseInt((String)op2));
+        }else if(obj instanceof CustomHashMap){
+            ((CustomHashMap)obj).remove(op2);
         }else{
             System.out.println("error");
         }
 
     }
 
-    private String size(String op1){
+    private String size(Object op1){
 
         Object obj = map.get(op1);
 
@@ -740,7 +749,7 @@ public class ShuntingYard {
 
     }
 
-    private boolean isEmpty(String op1){
+    private boolean isEmpty(Object op1){
 
         Object obj = map.get(op1);
 
@@ -755,13 +764,16 @@ public class ShuntingYard {
 
     }
 
-    private void clear(String op1 ){
+    private void clear(Object op1){
 
         Object obj = map.get(op1);
 
         if(obj instanceof DoubleLinkedList){
-           // ((DoubleLinkedList<Integer>)obj).clear();
-        }else{
+           ((DoubleLinkedList)obj).clear();
+        }else if(obj instanceof CustomHashMap){
+            //((CustomHashMap)obj).clear();
+        }
+        else{
             System.out.println("error");
         }
 
@@ -769,15 +781,16 @@ public class ShuntingYard {
 
     private void print(Object op1){
 
-        System.out.println("print");
+        //System.out.println("print");
 
         Object obj = map.get(op1);
 
-        System.out.println(((DoubleLinkedList)obj).toString());
+        //System.out.println(((DoubleLinkedList)obj).toString());
 
         if(obj instanceof DoubleLinkedList){
+            System.out.println("DLL "+ obj.toString());
         }else if(obj instanceof CustomHashMap){
-            System.out.println(obj.toString());
+            System.out.println("Hashmap "+obj.toString());
         }
 
     }
@@ -786,91 +799,119 @@ public class ShuntingYard {
 
     private void addFront(Object op1, Object key){
 
-        Object obj = map.get(op1);
+        DoubleLinkedList obj = (DoubleLinkedList) map.get(op1);
 
-        System.out.println(((DoubleLinkedList)obj).toString());
+        String value = (String) map.getOrDefault(key, key);
 
-        if(obj.getClass() == DoubleLinkedList.class){
-            ((DoubleLinkedList)obj).addFront(Integer.parseInt((String) key));
+        if(obj != null){
+            obj.addFront(Integer.parseInt(value));
         }else{
             System.out.println("error during addFront");
         }
 
     }
 
-    private void addEnd(String op1, String key){
+    private void addEnd(Object op1, Object key){
 
-        Object obj = map.get(op1);
+        DoubleLinkedList obj = (DoubleLinkedList) map.get(op1);
 
-        if(obj instanceof DoubleLinkedList){
-            ((DoubleLinkedList<Integer>)obj).addEnd(Integer.parseInt(key));
+        String value = (String) map.getOrDefault(key, key);
+
+        if(obj != null){
+           obj.addEnd(Integer.parseInt(value));
         }else{
             System.out.println("error");
         }
 
     }
 
-    private void forward(String op1){
+    private void forward(Object op1){
 
-        Object obj = map.get(op1);
+        DoubleLinkedList obj = (DoubleLinkedList) map.get(op1);
 
-        if(obj instanceof DoubleLinkedList){
-            ((DoubleLinkedList<Integer>)obj).iterForward();
+        if(obj != null){
+            obj.next();
         }else{
             System.out.println("error");
         }
 
     }
 
-    private void backward(String op1){
+    private void backward(Object op1){
 
-        Object obj = map.get(op1);
+        DoubleLinkedList obj = (DoubleLinkedList) map.get(op1);
 
-        if(obj instanceof DoubleLinkedList){
-            ((DoubleLinkedList<Integer>)obj).iterBackward();
+        if(obj != null){
+            obj.prev();
         }else{
             System.out.println("error");
         }
 
     }
 
-    private void toFront(String op1){
+    private void toFront(Object op1){
 
-        Object obj = map.get(op1);
+        DoubleLinkedList obj = (DoubleLinkedList) map.get(op1);
 
-        if(obj instanceof DoubleLinkedList){
-            ((DoubleLinkedList<Integer>)obj).toFront();
+        if(obj != null){
+            obj.toFront();
         }else{
             System.out.println("error");
         }
 
     }
 
-    private void toEnd(String op1){
+    private void toEnd(Object op1){
 
-        Object obj = map.get(op1);
+        DoubleLinkedList obj = (DoubleLinkedList) map.get(op1);
 
-        if(obj instanceof DoubleLinkedList){
-            ((DoubleLinkedList<Integer>)obj).toEnd();
+        if(obj != null){
+            obj.toEnd();
         }else{
             System.out.println("error");
         }
 
     }
 
-    private void addBefore(){
+    private void addBefore(Object op1, Object op2, Object op3){
+
+        DoubleLinkedList obj = (DoubleLinkedList) map.get(op1);
+
+        String value1 = (String) map.getOrDefault(op2, op2);
+        String value2 = (String) map.getOrDefault(op3, op3);
+
+        if(obj != null){
+            obj.addBefore(Integer.parseInt(value1),Integer.parseInt(value2));
+        }else{
+            System.out.println("error");
+        }
 
     }
-    private void addAfter(){
 
+    private void addAfter(Object op1, Object op2, Object op3){
+
+        DoubleLinkedList obj = (DoubleLinkedList) map.get(op1);
+
+        String value1 = (String) map.getOrDefault(op2, op2);
+        String value2 = (String) map.getOrDefault(op3, op3);
+
+        if(obj != null){
+            obj.addAfter(Integer.parseInt(value1),Integer.parseInt(value2));
+        }else{
+            System.out.println("error");
+        }
 
     }
 
 
     //hashmap
 
-    private boolean containsKey(String op1, String key){
-        return ((HashMap)map.get(op1)).containsKey(key);
+    private void put(Object op1, Object op2, Object op3){
+        ((CustomHashMap)map.get(op1)).put(op2,op3);
+    }
+
+    private boolean containsKey(Object op1, String key){
+        return ((CustomHashMap)map.get(op1)).containsKey(key);
     }
 
 
@@ -888,9 +929,8 @@ public class ShuntingYard {
 
     private void mapVar(String var, Object obj){
 
-        if(map.containsKey(var)){
-            map.remove(var);
-        }
+        map.remove(var);
+
         map.put(var,obj);
 
     }

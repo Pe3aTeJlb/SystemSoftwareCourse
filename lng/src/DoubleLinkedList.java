@@ -4,6 +4,10 @@ public class DoubleLinkedList<Type> extends Object{
 
     private ListNode<Type> front;
 
+    public void DoublyLinkedList() {
+        front = null;
+    }
+
     private int size;
 
     public Type iterForward(){
@@ -72,10 +76,6 @@ public class DoubleLinkedList<Type> extends Object{
 
     }
 
-    public void DoublyLinkedList() {
-        front = null;
-    }
-
     public void addFront(Type x) {
 
         if (isEmpty())
@@ -85,8 +85,12 @@ public class DoubleLinkedList<Type> extends Object{
         else {
 
             ListNode<Type> temp = front;
-            front = new ListNode<Type>(null, x, temp);
-            front.next.prev = front;
+
+            while (temp.prev != null) {
+                temp = temp.prev;
+            }
+
+            temp.prev = new ListNode<Type>(null, x, temp);
 
         }
 
@@ -97,7 +101,9 @@ public class DoubleLinkedList<Type> extends Object{
     public void addEnd(Type x) {
 
         if (isEmpty())
+
             front = new ListNode<Type>(x);
+
         else {
 
             ListNode<Type> temp = front;
@@ -107,6 +113,7 @@ public class DoubleLinkedList<Type> extends Object{
             }
 
             temp.next = new ListNode<Type>(temp, x, null);
+
         }
 
         size++;
@@ -207,22 +214,45 @@ public class DoubleLinkedList<Type> extends Object{
         return size;
     }
 
+    public void clear(){
+
+        toFront();
+
+        front.data = null;
+        front.next = null;
+        front.prev = null;
+
+    }
+
     @Override
     public String toString() {
 
-        System.out.println("print dll");
-
         ListNode<Type> temp = front;
-        StringBuilder builder = new StringBuilder("[");
+
+        if(temp != null){
+            while (temp.prev != null) {
+                temp = temp.prev;
+            }
+        }
+
+        StringBuilder builder = new StringBuilder();
+        String buff = "";
 
         while (temp != null) {
-            builder.append(temp.data).append(",");
+            builder.append(temp.data);
+            if(temp.next != null)builder.append(",");
             temp = temp.next;
         }
 
-        if(!builder.equals("[")) builder.deleteCharAt(builder.length() - 1);
-        builder.append("]");
-        return builder.toString();
+        if(builder.isEmpty()){
+            builder.append("dll(" + this.hashCode()+")");
+            buff = builder.toString();
+        }else{
+            builder.append("]");
+            buff = "[" + builder.toString();
+        }
+
+        return buff;
 
     }
 

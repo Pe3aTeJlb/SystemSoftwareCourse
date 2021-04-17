@@ -7,7 +7,6 @@ public class Main {
         Parser parser = new Parser();
         ShuntingYard shuntingYard = new ShuntingYard();
 
-
         if(args.length==0) {
             lexer.readFile("D://p.txt");
         }else {
@@ -22,7 +21,6 @@ public class Main {
 
         //shuntingYard.constructRPN(parser.getRoot());
         shuntingYard.constructExpression(parser.getRoot());
-
         //shuntingYard.calculateExpression(lexer.getLexemes());
 
     }
