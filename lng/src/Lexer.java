@@ -10,7 +10,7 @@ public class Lexer {
     private  List<Terminal> TERMINALS = List.of(
 
             new Terminal("VAR", "^[a-zA-Z_]{1}\\w*$"),
-            new Terminal("NUMBER", "0|[1-9][0-9]*"),
+            new Terminal("NUMBER", "0|-?[1-9][0-9]*"),
 
             new Terminal("ASSIGN_OP", "="),
             new Terminal("LOGICAL_OP", "==|!=|>|<"),
