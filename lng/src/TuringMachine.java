@@ -31,16 +31,15 @@ public class TuringMachine {
         operations.put("addEnd", 2);
         operations.put("remove", 2);
         operations.put("get", 2);
-        operations.put("if", 2);
         operations.put("toEnd", 2);
         operations.put("toFront", 2);
         operations.put("backward", 2);
         operations.put("forward", 2);
         operations.put("new", 2);
-        operations.put("goto", 2);
         operations.put("size", 2);
         operations.put("clear", 2);
         operations.put("print", 2);
+        operations.put("isEmpty", 2);
 
         operations.put("*", 2);
         operations.put("/", 2);
@@ -82,6 +81,7 @@ public class TuringMachine {
         operandCount.put("size", 1);
         operandCount.put("clear", 1);
         operandCount.put("print", 1);
+        operandCount.put("isEmpty", 1);
 
     }
 
@@ -102,11 +102,17 @@ public class TuringMachine {
 
         ArrayList<String> buffer = new ArrayList();
 
-        //calculateExpression(lexemes);
-
         for (Node n: root.getChild()) {
             buffer.addAll(calculateRPN(n));
         }
+
+        String rpn = "";
+
+        for (String s: buffer) {
+            rpn += s + " ";
+        }
+
+        System.out.println("RPN: "+rpn);
 
         calculateExpression(buffer);
 
@@ -122,13 +128,33 @@ public class TuringMachine {
 
             case ("assign_expr") -> {
 
-                for (Lexeme l : exp.getChild().get(0).getLexemes()) {
-                    buffLex.add(l);
+                if(getDefinedNode(exp.getChild().get(0), "value_expr").getChild().get(0).getName() == "function_call"){
+
+                    buff.add(exp.getChild().get(0).getLexemes().get(0).getValue());
+
+                    buff.addAll(calculateRPN(getDefinedNode(exp.getChild().get(0), "value_expr")));
+
+                    buff.add(exp.getChild().get(0).getLexemes().get(1).getValue());
+
+                   // System.out.println("assign "+buff.toString());
+
+                   return buff;
+
+                }else {
+
+                    for (Lexeme l : exp.getChild().get(0).getLexemes()) {
+                        buffLex.add(l);
+                    }
+
+                    buffLex.addAll(restoreAssign(getDefinedNode(exp.getChild().get(0), "value_expr")));
+
+                    for (Lexeme l : buffLex) {
+                        //System.out.println(l.getValue());
+                    }
+
+                    return sortingStation(buffLex);
+
                 }
-
-                buffLex.addAll(restoreAssign(getDefinedNode(exp.getChild().get(0), "value_expr")));
-
-                return sortingStation(buffLex);
 
             }
 
@@ -139,7 +165,15 @@ public class TuringMachine {
 
                 buffLex = restoreCondition(getDefinedNode(exp.getChild().get(0), "logical_expr"));
 
+                //for (Lexeme l: buffLex) {
+                 //   System.out.println(l.getValue());
+               // }
+
+                //System.out.println("buffLex restored "+buffLex.toString());
+
                 buff.addAll(sortingStation(buffLex));
+
+               // System.out.println("buff sorted "+buff.toString());
 
                 buff.add(_else);
                 buff.add("if");
@@ -153,7 +187,7 @@ public class TuringMachine {
                 buff.add(_else);
 
 
-                System.out.println("false branch");
+                //System.out.println("false branch");
                 if (exp.getChild().get(0).getChild().size() > 2) {
                     for (Node n : exp.getChild().get(0).getChild().get(2).getChild().get(0).getChild()) {
                         buff.addAll(calculateRPN(n));
@@ -173,7 +207,7 @@ public class TuringMachine {
 
                 buffLex = restoreCondition(getDefinedNode(exp.getChild().get(0), "logical_expr"));
 
-                System.out.println(buff);
+                //System.out.println(buff);
 
                 buff.addAll(sortingStation(buffLex));
 
@@ -194,12 +228,11 @@ public class TuringMachine {
 
                 buff.add(exp.getChild().get(0).getLexemes().get(0).getValue());
 
-
                 for (Node node : getDefinedNode(exp.getChild().get(0), "arguments").getChild()) {
                     buff.add(0,node.getLexemes().get(0).getValue());
                 }
 
-                System.out.println(buff.toString());
+               // System.out.println(buff.toString());
 
                 return buff;
 
@@ -207,7 +240,7 @@ public class TuringMachine {
 
         }
 
-        System.out.println(buff.toString());
+        //System.out.println(buff.toString());
 
         return buff;
     }
@@ -218,7 +251,7 @@ public class TuringMachine {
 
         if(root.getLexemes().size()>=2){
 
-            System.out.println(root.getChild().size());
+            //System.out.println(root.getChild().size());
 
             buff.add(root.getLexemes().get(0));
 
@@ -267,19 +300,26 @@ public class TuringMachine {
 
         if(root.getChild().size() == 2){
 
+            //buff += " " + root.getLexemes().get(0).getValue();
+           // buff = restoreCondition(root.getChild().get(0)) + " " + buff + " " + restoreCondition(root.getChild().get(1));
+
             buff.add(root.getLexemes().get(0));
             buff.addAll(0,restoreCondition(root.getChild().get(0)));
             buff.addAll(restoreCondition(root.getChild().get(1)));
 
         }else {
 
-            for (Lexeme l: root.getLexemes()) {
-                buff.add(l);
-            }
+            if(root.getLexemes().size()>=1)buff.add(root.getLexemes().get(0));
+
+            //for (Lexeme l: root.getLexemes()) {
+            //    buff.add(l);
+           // }
 
             for (Node n: root.getChild()) {
                 buff.addAll(restoreCondition(n));
             }
+
+            if(root.getLexemes().size()==2)buff.add(root.getLexemes().get(1));
 
         }
 
@@ -318,8 +358,8 @@ public class TuringMachine {
 
             String terminal = lex.get(i).getTerminal().getName();
 
-           // System.out.println(terminal);
-            //System.out.println(stack.toString());
+            //System.out.println(terminal);
+           // System.out.println(stack.toString());
 
             switch (terminal){
 
@@ -353,7 +393,7 @@ public class TuringMachine {
 
                     while(!stack.isEmpty() && !stack.peek().equals(leftBracket)){
 
-                        System.out.println(stack.peek());
+                       // System.out.println(stack.peek());
 
                         out.add(stack.pop());
 
@@ -381,14 +421,7 @@ public class TuringMachine {
 
     private void calculateExpression(ArrayList<String> tokens) {
 
-
-        String rpn = "";
-
-        for (String s: tokens) {
-            rpn += s + " ";
-        }
-
-        System.out.println("RPN: "+rpn);
+        System.out.println("\n\n\n"+"TuringMachine");
 
         Stack<Object> stack = new Stack<>();
         ListIterator<String> iter = tokens.listIterator();
@@ -408,11 +441,15 @@ public class TuringMachine {
                 System.out.println(stack.toString());
                 System.out.println("oper "+ token);
 
-                Object op1 = stack.pop();
+                Object op1 = null;
                 Object op2 = null;
                 Object op3 = null;
 
-                if(operandCount.get(token) == 2){
+                if(!stack.isEmpty()){
+                    op1 = stack.pop();
+                }
+
+                if(operandCount.get(token) >= 2){
                     op2 = stack.empty() ? "0" : stack.pop();
                 }
 
@@ -435,18 +472,29 @@ public class TuringMachine {
                     case ("goto") -> {
 
                         int pointerIndex = tokens.indexOf(op1);
-                       // System.out.println("pIndex " +pointerIndex + " curr index " + iter.nextIndex() +"-1");
+
+                        if(pointerIndex == iter.nextIndex() - 2){
+
+                            pointerIndex = tokens.lastIndexOf(op1);
+
+                        }
+
+                        System.out.println("pIndex " +pointerIndex + " curr index " + iter.nextIndex() +"-1");
 
                         if(iter.previousIndex() < pointerIndex){
-                            while(!iter.next().equals(op1)){
-                                //iter.next();
-                             //   System.out.println("fwd");
-                            }
+
+                            System.out.println("fwrd");
+                            while(!iter.next().equals(op1)){ }
+
                         }else{
-                            while(iter.previousIndex() != pointerIndex){
+
+                            System.out.println("back");
+
+                            while(iter.previousIndex() > pointerIndex){
+                                System.out.println("back2");
                                 iter.previous();
-                               // System.out.println("back");
                             }
+
                         }
 
                     }
@@ -468,11 +516,11 @@ public class TuringMachine {
                     case ("=") -> mapVar(op2, op1);
                     case ("new") -> stack.push(NewDataStruct(op1));
 
-                    case ("addFront") -> addFront(op2, op1);
-                    case ("addEnd") -> addEnd(op2, op1);
+                    case ("addFront") -> addFront(op1, op2);
+                    case ("addEnd") -> addEnd(op1, op2);
 
-                    case ("addAfter") -> addAfter(op3, op2, op1);
-                    case ("addBefore") -> addBefore(op3, op2, op1);
+                    case ("addAfter") -> addAfter(op1, op2, op3);
+                    case ("addBefore") -> addBefore(op1, op2, op3);
 
                     case ("forward") -> forward(op1);
                     case ("backward") -> backward(op1);
@@ -481,12 +529,12 @@ public class TuringMachine {
                     case ("toEnd") -> toEnd(op1);
 
                     case ("size") -> stack.push(size(op1));
-                    case ("remove") -> remove(op2, op1);
+                    case ("remove") -> remove(op1, op2);
                     case ("clear") -> clear(op1);
                     case ("print") -> print(op1);
 
-                    case ("put") -> put(op3, op2, op1);
-                    case ("get") -> stack.push(get(op2, op1));
+                    case ("put") -> put(op1, op2, op3);
+                    case ("get") -> stack.push(get(op1, op2));
 
 
                     default -> System.out.println("shuinting error");
@@ -572,8 +620,6 @@ public class TuringMachine {
     private String Less(Object op1, Object op2){
 
         int a, b;
-
-        //System.out.println((String) map.getOrDefault(op1, op1));
 
         a = Integer.parseInt(map.getOrDefault(op1, op1).toString());
 
