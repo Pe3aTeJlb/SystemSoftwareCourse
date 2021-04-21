@@ -26,7 +26,7 @@ public class Parser {
             node.addChild(expr());
         }
 
-        if(!lexemes.isEmpty()){throw new Exception("Error in lang");}
+        //if(!lexemes.isEmpty()){throw new Exception("Error in lang");}
 
         return node;
 

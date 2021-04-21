@@ -1,0 +1,8 @@
+
+        a = new HashMap
+
+    	put(a;asd;3)
+
+    	print(a)
+
+    	b = get(a;asd)

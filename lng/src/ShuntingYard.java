@@ -64,13 +64,13 @@ public class ShuntingYard {
 
     public void constructRPN(Node root){
 
-        String ass = "";
+        String buff = "";
 
         //upper expression layer
         for (Node n: root.getChild()) {
-            ass += checkTypeButDontCalculate(n) + "    ";
+            buff += checkTypeButDontCalculate(n) + "    ";
         }
-        System.out.println(ass);
+        System.out.println(buff);
 
     }
 

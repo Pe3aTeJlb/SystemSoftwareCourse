@@ -1,0 +1,16 @@
+
+    a = new DoubleLinkedList
+
+    addFront(a;0)
+    addFront(a;1)
+    addEnd(a;5)
+
+    print(a)
+
+    b = get(a;0)
+
+    if(b == 1){
+        clear(a)
+    }
+
+    print(a)

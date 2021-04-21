@@ -14,7 +14,7 @@ public class Lexer {
 
             new Terminal("ASSIGN_OP", "="),
             new Terminal("LOGICAL_OP", "==|!=|>|<"),
-            new Terminal("OP", "[+-/*]"),
+            new Terminal("OP", "[+-/*]",1),
 
             new Terminal("IF_KW", "if", 1),
             new Terminal("ELSE_KW", "else", 1),
